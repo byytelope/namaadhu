@@ -1,7 +1,7 @@
 import Foundation
 import GRDB
 
-struct Island: FetchableRecord, Identifiable, Decodable {
+struct Island: FetchableRecord, Identifiable, Codable {
   let id: Int
   let categoryId: Int
   let atoll: String
@@ -12,7 +12,7 @@ struct Island: FetchableRecord, Identifiable, Decodable {
   let status: Int
 
   var name: String {
-    "\(atoll). \(island)"
+    "\(atoll) \(island)"
   }
 
   private enum CodingKeys: String, CodingKey {

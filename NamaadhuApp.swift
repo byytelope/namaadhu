@@ -4,7 +4,7 @@ import SwiftUI
 struct NamaadhuApp: App {
   var body: some Scene {
     WindowGroup {
-      LocationsView()
+      PrayerTimesView()
     }
   }
 }

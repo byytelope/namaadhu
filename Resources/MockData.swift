@@ -1,8 +1,10 @@
+import Foundation
+
 let mockIslands: [Island] = [
   Island(
     id: 1,
     categoryId: 1,
-    atoll: "A",
+    atoll: "A.",
     island: "Alpha",
     minutes: 0,
     latitude: 0,
@@ -12,7 +14,7 @@ let mockIslands: [Island] = [
   Island(
     id: 2,
     categoryId: 1,
-    atoll: "B",
+    atoll: "B.",
     island: "Beta",
     minutes: 0,
     latitude: 0,
@@ -22,7 +24,7 @@ let mockIslands: [Island] = [
   Island(
     id: 3,
     categoryId: 2,
-    atoll: "C",
+    atoll: "C.",
     island: "Charlie",
     minutes: 0,
     latitude: 0,
@@ -32,7 +34,7 @@ let mockIslands: [Island] = [
   Island(
     id: 4,
     categoryId: 2,
-    atoll: "C",
+    atoll: "C.",
     island: "Da",
     minutes: 0,
     latitude: 0,
@@ -42,7 +44,7 @@ let mockIslands: [Island] = [
   Island(
     id: 5,
     categoryId: 3,
-    atoll: "D",
+    atoll: "D.",
     island: "Darwin",
     minutes: 0,
     latitude: 0,
@@ -52,7 +54,7 @@ let mockIslands: [Island] = [
   Island(
     id: 6,
     categoryId: 3,
-    atoll: "D",
+    atoll: "D.",
     island: "Da",
     minutes: 0,
     latitude: 0,
@@ -61,95 +63,95 @@ let mockIslands: [Island] = [
   ),
 ]
 
-let mockPrayerTimes: [PrayerTime] = [
-  PrayerTime(
+let mockPrayerTimes: [PrayerTimes] = [
+  PrayerTimes(
     categoryId: 1,
-    date: 0,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 735,
-    asr: 934,
-    maghrib: 1085,
-    isha: 1163
+    dayOfYear: 0,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 735),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1085),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 1,
-    date: 1,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 736,
-    asr: 934,
-    maghrib: 1086,
-    isha: 1163
+    dayOfYear: 1,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 1,
-    date: 2,
-    fajr: 302,
-    sunrise: 378,
-    dhuhr: 736,
-    asr: 935,
-    maghrib: 1086,
-    isha: 1164
+    dayOfYear: 2,
+    fajr: DateComponents(minute: 302),
+    sunrise: DateComponents(minute: 378),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 935),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1164)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 2,
-    date: 0,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 735,
-    asr: 934,
-    maghrib: 1085,
-    isha: 1163
+    dayOfYear: 0,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 735),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1085),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 2,
-    date: 1,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 736,
-    asr: 934,
-    maghrib: 1086,
-    isha: 1163
+    dayOfYear: 1,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 2,
-    date: 2,
-    fajr: 302,
-    sunrise: 378,
-    dhuhr: 736,
-    asr: 935,
-    maghrib: 1086,
-    isha: 1164
+    dayOfYear: 2,
+    fajr: DateComponents(minute: 302),
+    sunrise: DateComponents(minute: 378),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 935),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1164)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 3,
-    date: 0,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 735,
-    asr: 934,
-    maghrib: 1085,
-    isha: 1163
+    dayOfYear: 0,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 735),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1085),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 3,
-    date: 1,
-    fajr: 301,
-    sunrise: 377,
-    dhuhr: 736,
-    asr: 934,
-    maghrib: 1086,
-    isha: 1163
+    dayOfYear: 1,
+    fajr: DateComponents(minute: 301),
+    sunrise: DateComponents(minute: 377),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 934),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1163)
   ),
-  PrayerTime(
+  PrayerTimes(
     categoryId: 3,
-    date: 2,
-    fajr: 302,
-    sunrise: 378,
-    dhuhr: 736,
-    asr: 935,
-    maghrib: 1086,
-    isha: 1164
+    dayOfYear: 2,
+    fajr: DateComponents(minute: 302),
+    sunrise: DateComponents(minute: 378),
+    dhuhr: DateComponents(minute: 736),
+    asr: DateComponents(minute: 935),
+    maghrib: DateComponents(minute: 1086),
+    isha: DateComponents(minute: 1164)
   ),
 ]
