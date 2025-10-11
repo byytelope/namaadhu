@@ -41,9 +41,7 @@ struct IslandsView: View {
           if let selectedIsland = prefs.selectedIsland {
             Task {
               try? await Task.sleep(for: .milliseconds(100))
-              withAnimation {
-                proxy.scrollTo(selectedIsland.id, anchor: .center)
-              }
+              proxy.scrollTo(selectedIsland.id, anchor: .center)
             }
           }
         }

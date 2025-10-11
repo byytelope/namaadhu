@@ -67,91 +67,91 @@ let mockPrayerTimes: [PrayerTimes] = [
   PrayerTimes(
     categoryId: 1,
     dayOfYear: 0,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 735),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1085),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 735,
+    asrMinutes: 934,
+    maghribMinutes: 1085,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 1,
     dayOfYear: 1,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 736,
+    asrMinutes: 934,
+    maghribMinutes: 1086,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 1,
     dayOfYear: 2,
-    fajr: DateComponents(minute: 302),
-    sunrise: DateComponents(minute: 378),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 935),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1164)
+    fajrMinutes: 302,
+    sunriseMinutes: 378,
+    dhuhrMinutes: 736,
+    asrMinutes: 935,
+    maghribMinutes: 1086,
+    ishaMinutes: 1164
   ),
   PrayerTimes(
     categoryId: 2,
     dayOfYear: 0,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 735),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1085),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 735,
+    asrMinutes: 934,
+    maghribMinutes: 1085,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 2,
     dayOfYear: 1,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 736,
+    asrMinutes: 934,
+    maghribMinutes: 1086,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 2,
     dayOfYear: 2,
-    fajr: DateComponents(minute: 302),
-    sunrise: DateComponents(minute: 378),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 935),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1164)
+    fajrMinutes: 302,
+    sunriseMinutes: 378,
+    dhuhrMinutes: 736,
+    asrMinutes: 935,
+    maghribMinutes: 1086,
+    ishaMinutes: 1164
   ),
   PrayerTimes(
     categoryId: 3,
     dayOfYear: 0,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 735),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1085),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 735,
+    asrMinutes: 934,
+    maghribMinutes: 1085,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 3,
     dayOfYear: 1,
-    fajr: DateComponents(minute: 301),
-    sunrise: DateComponents(minute: 377),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 934),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1163)
+    fajrMinutes: 301,
+    sunriseMinutes: 377,
+    dhuhrMinutes: 736,
+    asrMinutes: 934,
+    maghribMinutes: 1086,
+    ishaMinutes: 1163
   ),
   PrayerTimes(
     categoryId: 3,
     dayOfYear: 2,
-    fajr: DateComponents(minute: 302),
-    sunrise: DateComponents(minute: 378),
-    dhuhr: DateComponents(minute: 736),
-    asr: DateComponents(minute: 935),
-    maghrib: DateComponents(minute: 1086),
-    isha: DateComponents(minute: 1164)
+    fajrMinutes: 302,
+    sunriseMinutes: 378,
+    dhuhrMinutes: 736,
+    asrMinutes: 935,
+    maghribMinutes: 1086,
+    ishaMinutes: 1164
   ),
 ]

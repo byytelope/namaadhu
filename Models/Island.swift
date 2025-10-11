@@ -1,7 +1,7 @@
 import Foundation
 import GRDB
 
-struct Island: FetchableRecord, Identifiable, Codable {
+struct Island: FetchableRecord, Identifiable, Codable, Equatable {
   let id: Int
   let categoryId: Int
   let atoll: String

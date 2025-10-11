@@ -66,9 +66,33 @@ struct MockDatabaseService: DatabaseServiceProtocol {
     return
       mockPrayerTimes
       .first(where: {
-        $0.categoryId == island.categoryId && $0.dayOfYear == day
+        $0.categoryId == island.categoryId && $0.day.dayIndex == day
       })
   }
+}
+
+extension Date {
+  /// Zero-based day index within the Gregorian year for this date.
+  /// For Jan 1st this returns 0; for Jan 2nd it returns 1, and so on.
+  /// - Parameter calendar: Calendar to use (defaults to .current).
+  public func dayIndex(in calendar: Calendar = .current) -> Int {
+    guard
+      let startOfYear = calendar.date(
+        from: calendar.dateComponents([.year], from: self)
+      )
+    else {
+      return 0
+    }
+    let startOfDay = calendar.startOfDay(for: self)
+    let components = calendar.dateComponents(
+      [.day],
+      from: calendar.startOfDay(for: startOfYear),
+      to: startOfDay
+    )
+    return components.day ?? 0
+  }
+
+  public var dayIndex: Int { dayIndex() }
 }
 
 private struct DatabaseServiceKey: EnvironmentKey {
