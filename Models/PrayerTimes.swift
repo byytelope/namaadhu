@@ -32,7 +32,7 @@ enum Prayer: String, CaseIterable, Identifiable {
 
 struct PrayerTimes: Sendable, Equatable, FetchableRecord {
   let categoryId: Int
-  let day: Date
+  let date: Date
 
   let fajr: DateComponents
   let sunrise: DateComponents
@@ -42,27 +42,22 @@ struct PrayerTimes: Sendable, Equatable, FetchableRecord {
   let isha: DateComponents
 
   init(row: Row) {
-    categoryId = row["category_id"] ?? 0
+    self.categoryId = row["category_id"] ?? 0
 
     let dayIndex: Int = row["date"] ?? 0
-    let calendar = Calendar.current
-    let year = calendar.component(.year, from: Date())
-    let startOfYear = calendar.date(
-      from: DateComponents(year: year, month: 1, day: 1)
-    )!
-    day = calendar.date(byAdding: .day, value: dayIndex, to: startOfYear)!
+    self.date = dateFromDayOfLeapYear(dayIndex)
 
     func comps(_ col: String) -> DateComponents {
       let minutes: Int = row[col] ?? 0
       return minutesToComponents(minutes)
     }
 
-    fajr = comps(Prayer.fajr.dbColumn)
-    sunrise = comps(Prayer.sunrise.dbColumn)
-    dhuhr = comps(Prayer.dhuhr.dbColumn)
-    asr = comps(Prayer.asr.dbColumn)
-    maghrib = comps(Prayer.maghrib.dbColumn)
-    isha = comps(Prayer.isha.dbColumn)
+    self.fajr = comps(Prayer.fajr.dbColumn)
+    self.sunrise = comps(Prayer.sunrise.dbColumn)
+    self.dhuhr = comps(Prayer.dhuhr.dbColumn)
+    self.asr = comps(Prayer.asr.dbColumn)
+    self.maghrib = comps(Prayer.maghrib.dbColumn)
+    self.isha = comps(Prayer.isha.dbColumn)
   }
 
   init(
@@ -76,13 +71,7 @@ struct PrayerTimes: Sendable, Equatable, FetchableRecord {
     ishaMinutes: Int,
   ) {
     self.categoryId = categoryId
-    let calendar = Calendar.current
-
-    let year = calendar.component(.year, from: Date())
-    let startOfYear = calendar.date(
-      from: DateComponents(year: year, month: 1, day: 1)
-    )!
-    self.day = calendar.date(byAdding: .day, value: dayOfYear, to: startOfYear)!
+    self.date = dateFromDayOfLeapYear(dayOfYear)
 
     func comps(from minutes: Int) -> DateComponents {
       DateComponents(hour: (minutes / 60), minute: (minutes % 60))
@@ -109,7 +98,7 @@ struct PrayerTimes: Sendable, Equatable, FetchableRecord {
 
   func orderedDates() -> [(Prayer, Date)] {
     orderedTimes.compactMap { prayer, comps in
-      time(comps, on: day).map { (prayer, $0) }
+      time(comps, on: date).map { (prayer, $0) }
     }
   }
 
@@ -156,4 +145,48 @@ private func minutesToComponents(_ minutes: Int) -> DateComponents {
 
 private func componentsToMinutes(_ components: DateComponents) -> Int {
   (components.hour ?? 0) * 60 + (components.minute ?? 0)
+}
+
+private func dateFromDayOfLeapYear(_ dayIndex: Int) -> Date {
+  let calendar = Calendar.current
+  let refYear = 2000
+  guard
+    let startOfRefYear = calendar.date(
+      from: DateComponents(year: refYear, month: 1, day: 1)
+    )
+  else {
+    let fallbackYear = calendar.component(.year, from: .now)
+    let startOfYear = calendar.date(
+      from: DateComponents(year: fallbackYear, month: 1, day: 1)
+    )!
+    return calendar.date(byAdding: .day, value: dayIndex, to: startOfYear)!
+  }
+
+  let refDate = calendar.date(
+    byAdding: .day,
+    value: dayIndex,
+    to: startOfRefYear
+  )!
+
+  let md = calendar.dateComponents([.month, .day], from: refDate)
+  let targetMonth = md.month ?? 1
+  var targetDay = md.day ?? 1
+  let finalYear = calendar.component(.year, from: .now)
+  if targetMonth == 2 && targetDay == 29 {
+    let febFirst = calendar.date(
+      from: DateComponents(year: finalYear, month: 2, day: 1)
+    )!
+    let daysInFeb = calendar.range(of: .day, in: .month, for: febFirst)!.count
+    if daysInFeb < 29 {
+      targetDay = 28
+    }
+  }
+
+  let finalComponents = DateComponents(
+    year: finalYear,
+    month: targetMonth,
+    day: targetDay
+  )
+
+  return calendar.date(from: finalComponents)!
 }

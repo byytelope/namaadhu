@@ -74,11 +74,10 @@ struct PrayerTimesList: View {
             }
 
             Text(timerManager.timeRemaining.formattedTime())
-              .fontWeight(.medium)
               .monospacedDigit()
           }
           .padding()
-          .background(Capsule().fill(.regularMaterial))
+          .background(Capsule().fill(.regularMaterial.opacity(0.75)))
         } else {
           HStack {
             Label(prayer.displayName, systemImage: prayer.sfSymbol)
@@ -98,11 +97,11 @@ struct PrayerTimesList: View {
               if isCurrent {
                 Color.clear
               } else {
-                Capsule().fill(Material.regular)
+                Capsule().fill(.regularMaterial.opacity(0.75))
               }
             }
           )
-          .fontWeight(isCurrent ? .medium : .regular)
+          .fontWeight(isCurrent ? .semibold : .regular)
           .glassEffect(isCurrent ? .regular.interactive() : .identity)
         }
       }

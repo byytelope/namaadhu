@@ -17,17 +17,7 @@ struct PrayerTimesView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient(
-          gradient: Gradient(
-            colors: [
-              colorScheme == .light ? .white : .black,
-              .secondaryAccent.mix(with: .accent, by: 0.5),
-            ]
-          ),
-          startPoint: .top,
-          endPoint: .bottom
-        )
-        .edgesIgnoringSafeArea(.all)
+        bgGradient()
 
         Group {
           if prefs.selectedIsland != nil {
@@ -36,11 +26,7 @@ struct PrayerTimesView: View {
               selectedDate: selectedDate
             )
           } else {
-            ContentUnavailableView(
-              "Select an island to continue",
-              systemImage: "location.slash",
-              description: Text("Please select an island from the list.")
-            )
+            contentUnavailableView()
           }
         }
       }
@@ -52,7 +38,9 @@ struct PrayerTimesView: View {
       .toolbar(content: toolbarContent)
       .sheet(isPresented: $showIslands) {
         IslandsView()
-          .navigationTransition(.zoom(sourceID: "islandsbutton", in: namespace))
+          .navigationTransition(
+            .zoom(sourceID: "islandsbutton", in: namespace)
+          )
       }
     }
     .onChange(of: selectedDate) { oldDate, newDate in
@@ -70,10 +58,32 @@ struct PrayerTimesView: View {
     }
   }
 
+  @ViewBuilder
+  func bgGradient() -> some View {
+    LinearGradient(
+      gradient: Gradient(
+        colors: [
+          colorScheme == .light ? .white : .black,
+          .secondaryAccent.mix(with: .accent, by: 0.5),
+        ]
+      ),
+      startPoint: .top,
+      endPoint: .bottom
+    )
+    .edgesIgnoringSafeArea(.all)
+  }
+
+  @ViewBuilder
+  func contentUnavailableView() -> some View {
+    ContentUnavailableView(
+      "Select an island to continue",
+      systemImage: "location.slash.circle.fill",
+      description: Text("Please select an island from the list.")
+    )
+  }
+
   @ToolbarContentBuilder
   func toolbarContent() -> some ToolbarContent {
-    ToolbarSpacer(placement: .bottomBar)
-
     prefs.selectedIsland == nil
       ? nil
       : ToolbarItem(placement: .bottomBar) {
@@ -95,7 +105,6 @@ struct PrayerTimesView: View {
       }
     }
     .matchedTransitionSource(id: "islandsbutton", in: namespace)
-
   }
 
   private func loadPrayerTimes() {

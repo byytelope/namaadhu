@@ -14,6 +14,12 @@ struct IslandsView: View {
     NavigationStack {
       ScrollViewReader { proxy in
         List {
+          Button("Automatic", systemImage: "location") {
+            prefs.selectedIsland = nil
+            dismiss()
+          }
+          .foregroundStyle(.accent)
+
           ForEach(groupedIslands, id: \.atoll) { group in
             Section(group.atoll) {
               ForEach(group.islands) { island in

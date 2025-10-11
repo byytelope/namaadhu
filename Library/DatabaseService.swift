@@ -41,7 +41,7 @@ struct DatabaseService: DatabaseServiceProtocol {
       try PrayerTimes.fetchOne(
         db,
         sql: "SELECT * FROM prayer_times WHERE category_id=? AND date=?",
-        arguments: [island.categoryId, date.dayIndex]
+        arguments: [island.categoryId, date.dayOfYear]
       )
     }
   }
@@ -66,33 +66,39 @@ struct MockDatabaseService: DatabaseServiceProtocol {
     return
       mockPrayerTimes
       .first(where: {
-        $0.categoryId == island.categoryId && $0.day.dayIndex == day
+        $0.categoryId == island.categoryId && $0.date.dayOfYear == day
       })
   }
 }
 
-extension Date {
-  /// Zero-based day index within the Gregorian year for this date.
-  /// For Jan 1st this returns 0; for Jan 2nd it returns 1, and so on.
-  /// - Parameter calendar: Calendar to use (defaults to .current).
-  public func dayIndex(in calendar: Calendar = .current) -> Int {
-    guard
-      let startOfYear = calendar.date(
-        from: calendar.dateComponents([.year], from: self)
-      )
-    else {
-      return 0
-    }
-    let startOfDay = calendar.startOfDay(for: self)
-    let components = calendar.dateComponents(
-      [.day],
-      from: calendar.startOfDay(for: startOfYear),
-      to: startOfDay
-    )
-    return components.day ?? 0
+extension Calendar {
+  func isLeapYear(_ year: Int) -> Bool {
+    let startOfYear = date(from: DateComponents(year: year))!
+    return range(of: .day, in: .year, for: startOfYear)!.count == 366
   }
+}
 
-  public var dayIndex: Int { dayIndex() }
+extension Date {
+  var dayOfYear: Int {
+    let calendar = Calendar.current
+    var ord: Int {
+      let _ord = calendar.ordinality(of: .day, in: .year, for: self) ?? 1
+      return _ord - 1
+    }
+
+    let comps = calendar.dateComponents([.year, .month, .day], from: self)
+    guard let year = comps.year, let month = comps.month else {
+      return ord
+    }
+
+    if !calendar.isLeapYear(year) {
+      if month > 2 {
+        return ord + 1
+      }
+    }
+
+    return ord
+  }
 }
 
 private struct DatabaseServiceKey: EnvironmentKey {

@@ -53,7 +53,7 @@ class PrayerTimerManager {
     let now = Date()
     let occurrences = pt.orderedDates()
 
-    let tomorrowDay = calendar.date(byAdding: .day, value: 1, to: pt.day)!
+    let tomorrowDay = calendar.date(byAdding: .day, value: 1, to: pt.date)!
     let fajrComps = pt[.fajr]
     let fajrTomorrow = calendar.date(
       byAdding: fajrComps,
@@ -122,7 +122,7 @@ class PrayerTimerManager {
           let tomorrowDay = self.calendar.date(
             byAdding: .day,
             value: 1,
-            to: pt.day
+            to: pt.date
           )!
           let fajrTomorrow = self.calendar.date(
             byAdding: pt[.fajr],
