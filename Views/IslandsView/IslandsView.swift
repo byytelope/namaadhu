@@ -2,9 +2,9 @@ import GRDB
 import SwiftUI
 
 struct IslandsView: View {
-  @Environment(\.dismiss) private var dismiss
+  @Binding var selectedIsland: Island?
+
   @Environment(\.databaseService) private var db
-  @Environment(\.preferencesService) private var prefs
 
   @State private var errorMessage: String?
   @State private var islands: [Island] = []
@@ -12,55 +12,17 @@ struct IslandsView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollViewReader { proxy in
-        List {
-          Button("Automatic", systemImage: "location") {
-            prefs.selectedIsland = nil
-            dismiss()
-          }
-          .foregroundStyle(.accent)
-
-          ForEach(groupedIslands, id: \.atoll) { group in
-            Section(group.atoll) {
-              ForEach(group.islands) { island in
-                Button {
-                  prefs.selectedIsland = island
-                  dismiss()
-                } label: {
-                  HStack {
-                    Text(island.island)
-                    Spacer()
-
-                    if let selectedIsland = prefs.selectedIsland,
-                      selectedIsland.id == island.id
-                    {
-                      Image(systemName: "checkmark")
-                        .foregroundStyle(.accent)
-                    }
-                  }
-                }
-              }
+      List(selection: $selectedIsland) {
+        ForEach(groupedIslands, id: \.atoll) { group in
+          Section(group.atoll) {
+            ForEach(group.islands) { island in
+              Text(island.island)
+                .tag(island)
             }
-          }
-        }
-        .onAppear {
-          if let selectedIsland = prefs.selectedIsland {
-            Task {
-              try? await Task.sleep(for: .milliseconds(100))
-              proxy.scrollTo(selectedIsland.id, anchor: .center)
-            }
-          }
-        }
-      }
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button(role: .close) {
-            dismiss()
           }
         }
       }
       .navigationTitle("Islands")
-      .navigationBarTitleDisplayMode(.inline)
       .headerProminence(.increased)
       .listStyle(.sidebar)
       .searchable(text: $searchText, prompt: "Search islands")
@@ -116,6 +78,14 @@ struct IslandsView: View {
   }
 }
 
+struct IslandsViewPreview: View {
+  @State private var selectedIsland: Island? = mockIslands[0]
+
+  var body: some View {
+    IslandsView(selectedIsland: $selectedIsland)
+  }
+}
+
 #Preview {
-  IslandsView()
+  IslandsViewPreview()
 }

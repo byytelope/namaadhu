@@ -1,5 +1,4 @@
 import SwiftUI
-import Toasts
 
 struct PrayerTimesList: View {
   var prayerTimes: PrayerTimes?
@@ -7,9 +6,6 @@ struct PrayerTimesList: View {
 
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.timerManager) private var timerManager
-  @Environment(\.presentToast) private var presentToast
-
-  @State private var alertEnabled = false
 
   private var isToday: Bool {
     Calendar.current.isDateInToday(selectedDate)
@@ -19,7 +15,7 @@ struct PrayerTimesList: View {
     List {
       if let times = prayerTimes {
         ForEach(times.orderedDates(), id: \.0) { prayer, date in
-          prayerRow(
+          PrayerTimeRow(
             prayer: prayer,
             date: date,
             isCurrent: isToday && prayer == timerManager.currentPrayer,
@@ -29,7 +25,9 @@ struct PrayerTimesList: View {
       }
     }
     .listStyle(.plain)
-    .listRowSpacing(6)
+    #if !os(macOS)
+      .listRowSpacing(6)
+    #endif
     .contentMargins(16)
     .scrollContentBackground(.hidden)
     .onDisappear {
@@ -44,103 +42,6 @@ struct PrayerTimesList: View {
       if isToday {
         timerManager.setTickingEnabled(phase == .active)
       }
-    }
-  }
-
-  @ViewBuilder
-  private func prayerRow(
-    prayer: Prayer,
-    date: Date,
-    isCurrent: Bool = false,
-    isUpcoming: Bool = false
-  )
-    -> some View
-  {
-    GlassEffectContainer {
-      HStack {
-        if isUpcoming {
-          Group {
-            HStack {
-              Label(prayer.displayName, systemImage: prayer.sfSymbol)
-              Spacer()
-              Text(
-                DateFormatter.localizedString(
-                  from: date,
-                  dateStyle: .none,
-                  timeStyle: .short
-                )
-              )
-              .monospacedDigit()
-            }
-
-            Text(timerManager.timeRemaining.formattedTime())
-              .monospacedDigit()
-          }
-          .padding()
-          .background(Capsule().fill(.regularMaterial.opacity(0.75)))
-        } else {
-          HStack {
-            Label(prayer.displayName, systemImage: prayer.sfSymbol)
-            Spacer()
-            Text(
-              DateFormatter.localizedString(
-                from: date,
-                dateStyle: .none,
-                timeStyle: .short
-              )
-            )
-            .monospacedDigit()
-          }
-          .padding()
-          .background(
-            Group {
-              if isCurrent {
-                Color.clear
-              } else {
-                Capsule().fill(.regularMaterial.opacity(0.75))
-              }
-            }
-          )
-          .fontWeight(isCurrent ? .semibold : .regular)
-          .glassEffect(isCurrent ? .regular.interactive() : .identity)
-        }
-      }
-    }
-    .symbolVariant(.fill)
-    .symbolRenderingMode(.hierarchical)
-    .symbolColorRenderingMode(.gradient)
-    .listRowInsets(EdgeInsets())
-    .listRowSeparator(.hidden)
-    .listRowBackground(Color.clear)
-    .swipeActions {
-      Group {
-        alertEnabled
-          ? Button("Disable alert", systemImage: "bell.slash") {
-            presentToast(
-              .init(
-                icon: Image(systemName: "bell.slash")
-                  .symbolVariant(.fill)
-                  .symbolColorRenderingMode(.gradient)
-                  .foregroundStyle(.red),
-                message: "Alerts disabled for \(prayer.displayName)"
-              )
-            )
-            alertEnabled = false
-          }
-          : Button("Enable alert", systemImage: "bell") {
-            presentToast(
-              .init(
-                icon: Image(systemName: "bell")
-                  .symbolVariant(.fill)
-                  .symbolColorRenderingMode(.gradient),
-                message: "Alerts enabled for \(prayer.displayName)"
-              )
-            )
-            alertEnabled = true
-          }
-      }
-      .labelStyle(.iconOnly)
-      .tint(alertEnabled ? Color(UIColor.tertiarySystemFill) : .orange)
     }
   }
 }

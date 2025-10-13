@@ -1,54 +1,43 @@
 import GRDB
 import SwiftUI
-import Toasts
+
+#if canImport(Toasts)
+  import Toasts
+#endif
 
 struct PrayerTimesView: View {
-  @Namespace private var namespace
+  var selectedIsland: Island
 
+  @Environment(\.dismiss) var dismiss
   @Environment(\.colorScheme) var colorScheme
   @Environment(\.databaseService) private var db
-  @Environment(\.preferencesService) private var prefs
 
   @State private var selectedDate = Date.now
   @State private var prayerTimes: PrayerTimes?
   @State private var errorMessage: String?
-  @State private var showIslands = false
 
   var body: some View {
     NavigationStack {
       ZStack {
         bgGradient()
 
-        Group {
-          if prefs.selectedIsland != nil {
-            PrayerTimesList(
-              prayerTimes: prayerTimes,
-              selectedDate: selectedDate
-            )
-          } else {
-            contentUnavailableView()
-          }
-        }
+        PrayerTimesList(
+          prayerTimes: prayerTimes,
+          selectedDate: selectedDate
+        )
       }
-      .navigationTitle(
-        prefs.selectedIsland == nil
-          ? "" : selectedDate.formatted(date: .abbreviated, time: .omitted)
+      .navigationTitle(selectedIsland.name)
+      .navigationSubtitle(
+        selectedDate.formatted(date: .abbreviated, time: .omitted)
       )
-      .navigationSubtitle(prefs.selectedIsland?.name ?? "")
       .toolbar(content: toolbarContent)
-      .sheet(isPresented: $showIslands) {
-        IslandsView()
-          .navigationTransition(
-            .zoom(sourceID: "islandsbutton", in: namespace)
-          )
-      }
     }
     .onChange(of: selectedDate) { oldDate, newDate in
       if oldDate != newDate {
         loadPrayerTimes()
       }
     }
-    .onChange(of: prefs.selectedIsland, initial: true) { _, _ in
+    .onChange(of: selectedIsland, initial: true) { _, _ in
       loadPrayerTimes()
     }
     .alert("Error", isPresented: .constant(errorMessage != nil)) {
@@ -63,8 +52,9 @@ struct PrayerTimesView: View {
     LinearGradient(
       gradient: Gradient(
         colors: [
+          .secondaryAccent,
           colorScheme == .light ? .white : .black,
-          .secondaryAccent.mix(with: .accent, by: 0.5),
+          colorScheme == .light ? .white : .black,
         ]
       ),
       startPoint: .top,
@@ -73,57 +63,61 @@ struct PrayerTimesView: View {
     .edgesIgnoringSafeArea(.all)
   }
 
-  @ViewBuilder
-  func contentUnavailableView() -> some View {
-    ContentUnavailableView(
-      "Select an island to continue",
-      systemImage: "location.slash.circle.fill",
-      description: Text("Please select an island from the list.")
-    )
-  }
-
   @ToolbarContentBuilder
   func toolbarContent() -> some ToolbarContent {
-    prefs.selectedIsland == nil
-      ? nil
-      : ToolbarItem(placement: .bottomBar) {
-        Label("Select date", systemImage: "calendar")
-          .overlay {
-            DatePicker(
-              "Select date",
-              selection: $selectedDate,
-              displayedComponents: .date
-            )
-            .labelsHidden()
-            .colorMultiply(.clear)
-          }
-      }
+    ToolbarItem(
+      placement: {
+        #if os(macOS)
+          .automatic
+        #else
+          .bottomBar
+        #endif
+      }()
+    ) {
+      Label("Select date", systemImage: "calendar")
+        .overlay {
+          DatePicker(
+            "Select date",
+            selection: $selectedDate,
+            displayedComponents: .date
+          )
+          .labelsHidden()
+          .colorMultiply(.clear)
+        }
+    }
 
-    ToolbarItem(placement: .bottomBar) {
+    ToolbarItem(
+      placement: {
+        #if os(macOS)
+          .automatic
+        #else
+          .bottomBar
+        #endif
+      }()
+    ) {
       Button("Location", systemImage: "location") {
-        showIslands = true
+        dismiss()
       }
     }
-    .matchedTransitionSource(id: "islandsbutton", in: namespace)
   }
 
   private func loadPrayerTimes() {
-    if let island = prefs.selectedIsland {
-      do {
-        prayerTimes =
-          try db
-          .fetchPrayerTime(for: island, in: selectedDate)
-      } catch let decodingError as RowDecodingError {
-        print("RowDecodingError:", decodingError)
-        errorMessage = String(describing: decodingError)
-      } catch {
-        errorMessage = error.localizedDescription
-      }
+    do {
+      prayerTimes =
+        try db
+        .fetchPrayerTime(for: selectedIsland, in: selectedDate)
+    } catch let decodingError as RowDecodingError {
+      print("RowDecodingError:", decodingError)
+      errorMessage = String(describing: decodingError)
+    } catch {
+      errorMessage = error.localizedDescription
     }
   }
 }
 
 #Preview {
-  PrayerTimesView()
-    .installToast(position: .top)
+  PrayerTimesView(selectedIsland: mockIslands[0])
+    #if canImport(Toasts)
+      .installToast(position: .top)
+    #endif
 }
