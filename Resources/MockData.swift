@@ -4,7 +4,7 @@ let mockIslands: [Island] = [
   Island(
     id: 1,
     categoryId: 1,
-    atoll: "A.",
+    atoll: .haaAlifu,
     island: "Alpha",
     minutes: 0,
     latitude: 0,
@@ -14,7 +14,7 @@ let mockIslands: [Island] = [
   Island(
     id: 2,
     categoryId: 1,
-    atoll: "B.",
+    atoll: .shaviyani,
     island: "Beta",
     minutes: 0,
     latitude: 0,
@@ -24,7 +24,7 @@ let mockIslands: [Island] = [
   Island(
     id: 3,
     categoryId: 2,
-    atoll: "C.",
+    atoll: .kaafu,
     island: "Charlie",
     minutes: 0,
     latitude: 0,
@@ -34,7 +34,7 @@ let mockIslands: [Island] = [
   Island(
     id: 4,
     categoryId: 2,
-    atoll: "C.",
+    atoll: .vaavu,
     island: "Da",
     minutes: 0,
     latitude: 0,
@@ -44,7 +44,7 @@ let mockIslands: [Island] = [
   Island(
     id: 5,
     categoryId: 3,
-    atoll: "D.",
+    atoll: .gnaviyani,
     island: "Darwin",
     minutes: 0,
     latitude: 0,
@@ -54,7 +54,7 @@ let mockIslands: [Island] = [
   Island(
     id: 6,
     categoryId: 3,
-    atoll: "D.",
+    atoll: .seenu,
     island: "Da",
     minutes: 0,
     latitude: 0,

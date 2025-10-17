@@ -14,12 +14,13 @@ struct IslandsView: View {
     NavigationStack {
       List(selection: $selectedIsland) {
         ForEach(groupedIslands, id: \.atoll) { group in
-          Section(group.atoll) {
+          Section(group.atoll.fullName) {
             ForEach(group.islands) { island in
               Text(island.island)
                 .tag(island)
             }
           }
+          .sectionIndexLabel(group.atoll.rawValue)
         }
       }
       .navigationTitle("Islands")
@@ -51,15 +52,18 @@ struct IslandsView: View {
   private var filteredIslands: [Island] {
     let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !query.isEmpty else { return islands }
+
     return islands.filter { island in
       island.island.localizedCaseInsensitiveContains(query)
-        || island.atoll.localizedCaseInsensitiveContains(query)
+        || island.atoll.fullName.localizedCaseInsensitiveContains(query)
+        || island.atoll.rawValue.localizedCaseInsensitiveContains(query)
         || island.name.localizedCaseInsensitiveContains(query)
     }
   }
 
-  private var groupedIslands: [(atoll: String, islands: [Island])] {
+  private var groupedIslands: [(atoll: Atoll, islands: [Island])] {
     let groups = Dictionary(grouping: filteredIslands, by: { $0.atoll })
+
     return
       groups
       .map { key, value in
@@ -72,8 +76,7 @@ struct IslandsView: View {
         )
       }
       .sorted { lhs, rhs in
-        lhs.atoll.localizedCaseInsensitiveCompare(rhs.atoll)
-          == .orderedAscending
+        lhs.atoll.displayOrder < rhs.atoll.displayOrder
       }
   }
 }

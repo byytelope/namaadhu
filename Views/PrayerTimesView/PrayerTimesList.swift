@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PrayerTimesList: View {
   var prayerTimes: PrayerTimes?
-  var selectedDate: Date
+  @Binding var selectedDate: Date
 
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.timerManager) private var timerManager
@@ -13,6 +13,17 @@ struct PrayerTimesList: View {
 
   var body: some View {
     List {
+      DatePicker(
+        "Select date",
+        selection: $selectedDate,
+        displayedComponents: .date
+      )
+      .datePickerStyle(.compact)
+      .labelsHidden()
+      .listRowBackground(Color.clear)
+      .listSectionSeparator(.hidden)
+      .listRowInsets(EdgeInsets())
+
       if let times = prayerTimes {
         ForEach(times.orderedDates(), id: \.0) { prayer, date in
           PrayerTimeRow(
@@ -25,10 +36,10 @@ struct PrayerTimesList: View {
       }
     }
     .listStyle(.plain)
-    #if !os(macOS)
+    #if os(iOS)
+      .safeAreaPadding()
       .listRowSpacing(6)
     #endif
-    .contentMargins(16)
     .scrollContentBackground(.hidden)
     .onDisappear {
       timerManager.setTickingEnabled(false)

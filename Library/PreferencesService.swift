@@ -23,6 +23,15 @@ class PreferencesService {
     }
   }
 
+  var selectedIslandBinding: Binding<Island?> {
+    Binding(
+      get: { self.selectedIsland },
+      set: { newValue in
+        self.selectedIsland = newValue
+      }
+    )
+  }
+
   init() {
     selectedIsland = {
       guard let data = storage.selectedIslandData else { return nil }

@@ -5,23 +5,26 @@ import SwiftUI
 #endif
 
 struct ContentView: View {
+  @Environment(\.preferencesService) private var prefs
+
   @State private var visibility: NavigationSplitViewVisibility = .all
-  @State private var selectedIsland: Island?
 
   var body: some View {
     NavigationSplitView {
-      IslandsView(selectedIsland: $selectedIsland)
+      IslandsView(selectedIsland: prefs.selectedIslandBinding)
     } detail: {
-      if let island = selectedIsland {
-        PrayerTimesView(selectedIsland: island)
-          .navigationBarBackButtonHidden()
-      } else {
-        ContentUnavailableView(
-          "Select an island to continue",
-          systemImage: "location.slash.circle.fill",
-          description: Text("Please select an island from the list.")
-        )
+      Group {
+        if let island = prefs.selectedIsland {
+          PrayerTimesView(selectedIsland: island)
+        } else {
+          ContentUnavailableView(
+            "Select an island to continue",
+            systemImage: "location.slash.circle.fill",
+            description: Text("Please select an island from the list.")
+          )
+        }
       }
+      .navigationBarBackButtonHidden()
     }
   }
 }

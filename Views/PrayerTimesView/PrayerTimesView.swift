@@ -23,13 +23,11 @@ struct PrayerTimesView: View {
 
         PrayerTimesList(
           prayerTimes: prayerTimes,
-          selectedDate: selectedDate
+          selectedDate: $selectedDate
         )
       }
-      .navigationTitle(selectedIsland.name)
-      .navigationSubtitle(
-        selectedDate.formatted(date: .abbreviated, time: .omitted)
-      )
+      .navigationTitle("Namaadhu")
+      .navigationSubtitle(selectedIsland.name)
       .toolbar(content: toolbarContent)
     }
     .onChange(of: selectedDate) { oldDate, newDate in
@@ -51,10 +49,13 @@ struct PrayerTimesView: View {
   func bgGradient() -> some View {
     LinearGradient(
       gradient: Gradient(
-        colors: [
-          .secondaryAccent,
-          colorScheme == .light ? .white : .black,
-          colorScheme == .light ? .white : .black,
+        colors: colorScheme == .light ? [
+          .cream,
+          .accent,
+        ] : [
+          .darkPurple,
+          .accent,
+          .cream,
         ]
       ),
       startPoint: .top,
@@ -68,28 +69,7 @@ struct PrayerTimesView: View {
     ToolbarItem(
       placement: {
         #if os(macOS)
-          .automatic
-        #else
-          .bottomBar
-        #endif
-      }()
-    ) {
-      Label("Select date", systemImage: "calendar")
-        .overlay {
-          DatePicker(
-            "Select date",
-            selection: $selectedDate,
-            displayedComponents: .date
-          )
-          .labelsHidden()
-          .colorMultiply(.clear)
-        }
-    }
-
-    ToolbarItem(
-      placement: {
-        #if os(macOS)
-          .automatic
+          .primaryAction
         #else
           .bottomBar
         #endif
