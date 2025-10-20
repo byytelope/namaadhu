@@ -14,7 +14,7 @@ let mockIslands: [Island] = [
   Island(
     id: 2,
     categoryId: 1,
-    atoll: .shaviyani,
+    atoll: .haaAlifu,
     island: "Beta",
     minutes: 0,
     latitude: 0,
@@ -44,7 +44,7 @@ let mockIslands: [Island] = [
   Island(
     id: 5,
     categoryId: 3,
-    atoll: .gnaviyani,
+    atoll: .seenu,
     island: "Darwin",
     minutes: 0,
     latitude: 0,

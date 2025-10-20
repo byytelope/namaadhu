@@ -2,13 +2,18 @@ import GRDB
 import SwiftUI
 
 struct IslandsView: View {
+  var searchText: String
   @Binding var selectedIsland: Island?
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Environment(\.databaseService) private var db
 
   @State private var errorMessage: String?
   @State private var islands: [Island] = []
-  @State private var searchText: String = ""
+
+  private var isiPhone: Bool {
+    horizontalSizeClass == .compact
+  }
 
   var body: some View {
     NavigationStack {
@@ -26,7 +31,30 @@ struct IslandsView: View {
       .navigationTitle("Islands")
       .headerProminence(.increased)
       .listStyle(.sidebar)
-      .searchable(text: $searchText, prompt: "Search islands")
+      .toolbar {
+        let placement: ToolbarItemPlacement = {
+          #if os(iOS)
+            isiPhone ? .bottomBar : .automatic
+          #else
+            .automatic
+          #endif
+        }()
+
+        #if os(iOS)
+          if isiPhone {
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            ToolbarSpacer(placement: .bottomBar)
+          }
+        #endif
+
+        ToolbarItem(placement: placement) {
+          Button {
+            errorMessage = "This feature hasn't been implemented yet."
+          } label: {
+            Label("Automatic", systemImage: "location.viewfinder")
+          }
+        }
+      }
     }
     .task {
       loadIslands()
@@ -85,7 +113,7 @@ struct IslandsViewPreview: View {
   @State private var selectedIsland: Island? = mockIslands[0]
 
   var body: some View {
-    IslandsView(selectedIsland: $selectedIsland)
+    IslandsView(searchText: "", selectedIsland: $selectedIsland)
   }
 }
 

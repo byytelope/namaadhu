@@ -10,16 +10,21 @@ struct PrayerTimesView: View {
 
   @Environment(\.dismiss) var dismiss
   @Environment(\.colorScheme) var colorScheme
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Environment(\.databaseService) private var db
 
   @State private var selectedDate = Date.now
   @State private var prayerTimes: PrayerTimes?
   @State private var errorMessage: String?
 
+  private var isiPhone: Bool {
+    horizontalSizeClass == .compact
+  }
+
   var body: some View {
     NavigationStack {
       ZStack {
-        bgGradient()
+        BGGradient()
 
         PrayerTimesList(
           prayerTimes: prayerTimes,
@@ -46,39 +51,69 @@ struct PrayerTimesView: View {
   }
 
   @ViewBuilder
-  func bgGradient() -> some View {
-    LinearGradient(
-      gradient: Gradient(
-        colors: colorScheme == .light ? [
-          .cream,
-          .accent,
-        ] : [
-          .darkPurple,
-          .accent,
-          .cream,
-        ]
-      ),
-      startPoint: .top,
-      endPoint: .bottom
-    )
-    .edgesIgnoringSafeArea(.all)
+  func BGGradient() -> some View {
+    #if os(iOS)
+      colorScheme == .light
+        ? RadialGradient(
+          colors: [
+            .accent,
+            .cream,
+          ],
+          center: isiPhone ? .bottom : .bottomTrailing,
+          startRadius: isiPhone ? 1000 : 1500,
+          endRadius: isiPhone ? 100 : 0
+        )
+        .edgesIgnoringSafeArea(.all)
+        : RadialGradient(
+          colors: [
+            .darkPurple,
+            .accent,
+            .cream,
+          ],
+          center: isiPhone ? .bottom : .bottomTrailing,
+          startRadius: isiPhone ? 900 : 1500,
+          endRadius: isiPhone ? 50 : 0
+        )
+        .edgesIgnoringSafeArea(.all)
+    #else
+      colorScheme == .light
+        ? RadialGradient(
+          colors: [
+            .accent,
+            .cream,
+          ],
+          center: .topTrailing,
+          startRadius: 700,
+          endRadius: 50
+        )
+        .edgesIgnoringSafeArea(.all)
+        : RadialGradient(
+          colors: [
+            .darkPurple,
+            .accent,
+            .cream,
+          ],
+          center: .topTrailing,
+          startRadius: 900,
+          endRadius: 50
+        )
+        .edgesIgnoringSafeArea(.all)
+    #endif
   }
 
   @ToolbarContentBuilder
-  func toolbarContent() -> some ToolbarContent {
-    ToolbarItem(
-      placement: {
-        #if os(macOS)
-          .primaryAction
-        #else
-          .bottomBar
-        #endif
-      }()
-    ) {
-      Button("Location", systemImage: "location") {
-        dismiss()
+  private func toolbarContent() -> some ToolbarContent {
+    #if os(iOS)
+      if isiPhone {
+        ToolbarItem(placement: .bottomBar) {
+          Button("Location", systemImage: "location") {
+            dismiss()
+          }
+        }
       }
-    }
+    #else
+      ToolbarSpacer()
+    #endif
   }
 
   private func loadPrayerTimes() {

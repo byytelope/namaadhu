@@ -8,10 +8,14 @@ struct ContentView: View {
   @Environment(\.preferencesService) private var prefs
 
   @State private var visibility: NavigationSplitViewVisibility = .all
+  @State private var searchText: String = ""
 
   var body: some View {
     NavigationSplitView {
-      IslandsView(selectedIsland: prefs.selectedIslandBinding)
+      IslandsView(
+        searchText: searchText,
+        selectedIsland: prefs.selectedIslandBinding
+      )
     } detail: {
       Group {
         if let island = prefs.selectedIsland {
@@ -26,6 +30,11 @@ struct ContentView: View {
       }
       .navigationBarBackButtonHidden()
     }
+    .searchable(
+      text: $searchText,
+      placement: .sidebar,
+      prompt: "Search islands",
+    )
   }
 }
 

@@ -4,9 +4,9 @@
   struct PrayerTimeRow: View {
     var prayer: Prayer
     var date: Date
-    var isCurrent: Bool = false
     var isUpcoming: Bool = false
 
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.timerManager) private var timerManager
 
     @State private var alertEnabled = false
@@ -16,8 +16,25 @@
         if isUpcoming {
           Group {
             HStack {
-              Label(prayer.displayName, systemImage: prayer.sfSymbol)
+              Label {
+                Text(prayer.displayName)
+                  .foregroundStyle(
+                    colorScheme == .light
+                      ? Color.primary.mix(with: .accent, by: 0.7)
+                      : .accent.mix(with: .primary, by: 0.9)
+                  )
+              } icon: {
+                Image(systemName: prayer.sfSymbol)
+                  .foregroundStyle(
+                    colorScheme == .light
+                      ? Color.primary.mix(with: .accent, by: 0.7)
+                      : .accent.mix(with: .primary, by: 0.9)
+                  )
+              }
+              .fontWeight(.semibold)
+
               Spacer()
+
               Text(
                 DateFormatter.localizedString(
                   from: date,
@@ -31,12 +48,35 @@
             Text(timerManager.timeRemaining.formattedTime())
               .monospacedDigit()
           }
-          .padding()
-          .background(Capsule().fill(.regularMaterial.opacity(0.75)))
+          .fontWeight(.semibold)
+          .padding(10)
+          .background(
+            Capsule().fill(
+              colorScheme == .light
+                ? Material.thin.opacity(0.75) : Material.regular.opacity(0.75)
+            )
+          )
         } else {
           HStack {
-            Label(prayer.displayName, systemImage: prayer.sfSymbol)
+            Label {
+              Text(prayer.displayName)
+                .foregroundStyle(
+                  colorScheme == .light
+                    ? Color.primary.mix(with: .accent, by: 0.7)
+                    : .accent.mix(with: .primary, by: 0.9)
+                )
+            } icon: {
+              Image(systemName: prayer.sfSymbol)
+                .foregroundStyle(
+                  colorScheme == .light
+                    ? .accent
+                    : .accent.mix(with: .primary, by: 0.5)
+                )
+            }
+            .fontWeight(.medium)
+
             Spacer()
+
             Text(
               DateFormatter.localizedString(
                 from: date,
@@ -46,9 +86,13 @@
             )
             .monospacedDigit()
           }
-          .padding()
-          .background(Capsule().fill(.ultraThinMaterial.opacity(0.75)))
-          .fontWeight(isCurrent ? .semibold : .regular)
+          .padding(10)
+          .background(
+            Capsule().fill(
+              colorScheme == .light
+                ? Material.regular.opacity(0.75) : Material.thin.opacity(0.5)
+            )
+          )
         }
       }
       .symbolVariant(.fill)
