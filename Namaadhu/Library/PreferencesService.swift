@@ -1,9 +1,14 @@
 import SwiftUI
+import WidgetKit
 
 @Observable
 class PreferencesService {
   private class Storage {
-    @AppStorage("selectedIslandID") var selectedIslandData: Data?
+    @AppStorage(
+      "selectedIslandData",
+      store: UserDefaults(suiteName: "group.me.shadhaan.Namaadhu")
+    )
+    var selectedIslandData: Data?
   }
 
   private let storage = Storage()
@@ -14,6 +19,7 @@ class PreferencesService {
         do {
           let data = try JSONEncoder().encode(island)
           storage.selectedIslandData = data
+          WidgetCenter.shared.reloadTimelines(ofKind: "PrayerTimesWidget")
         } catch {
           print("PreferencesService: failed to encode selectedIsland:", error)
         }

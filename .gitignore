@@ -1,1 +1,44 @@
+# Xcode
 .DS_Store
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+
+# Build artifacts
+build/
+DerivedData/
+*.xcarchive/
+*.ipa
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# Carthage
+Carthage/Build/
+
+# CocoaPods
+Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
+
+# User-specific data
+xcuserdata/
+
+# Other
+*.hmap
+*.lock
+*.log
+*.swp
+*.bak
+

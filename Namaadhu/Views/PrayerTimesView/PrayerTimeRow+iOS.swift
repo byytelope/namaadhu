@@ -49,6 +49,8 @@
               }
 
               Text(timerManager.timeRemaining.formattedTime())
+                .contentTransition(.numericText())
+                .animation(.default, value: timerManager.timeRemaining)
                 .monospacedDigit()
             }
             .fontWeight(.semibold)
