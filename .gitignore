@@ -4,6 +4,7 @@
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
 
 # Build artifacts
 build/

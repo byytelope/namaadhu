@@ -1,7 +1,7 @@
 import Foundation
 import GRDB
 
-enum Prayer: String, CaseIterable, Identifiable {
+enum Prayer: String, CaseIterable, Identifiable, Codable {
   case fajr, sunrise, dhuhr, asr, maghrib, isha
   var id: String { rawValue }
 

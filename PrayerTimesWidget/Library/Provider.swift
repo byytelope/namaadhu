@@ -5,13 +5,13 @@ import WidgetKit
 struct Provider: TimelineProvider {
   private let db = DatabaseService(reader: AppDatabase.shared)
 
-  func placeholder(in context: Context) -> PrayerTimerEntry {
+  func placeholder(in context: Context) -> PrayerTimesEntry {
     .placeholder
   }
 
   func getSnapshot(
     in context: Context,
-    completion: @escaping (PrayerTimerEntry) -> Void
+    completion: @escaping (PrayerTimesEntry) -> Void
   ) {
     let entry = makeEntry(for: Date())
     completion(entry)
@@ -19,7 +19,7 @@ struct Provider: TimelineProvider {
 
   func getTimeline(
     in context: Context,
-    completion: @escaping (Timeline<PrayerTimerEntry>) -> Void
+    completion: @escaping (Timeline<PrayerTimesEntry>) -> Void
   ) {
     let now = Date()
 
@@ -30,7 +30,7 @@ struct Provider: TimelineProvider {
     completion(timeline)
   }
 
-  private func makeEntry(for date: Date) -> PrayerTimerEntry {
+  private func makeEntry(for date: Date) -> PrayerTimesEntry {
     guard let island = loadSelectedIsland() else {
       return .empty
     }
@@ -66,12 +66,13 @@ struct Provider: TimelineProvider {
       }
     }
 
-    return PrayerTimerEntry(
+    return PrayerTimesEntry(
       date: date,
       selectedIslandName: island.name,
       currentPrayer: currentPrayer,
       upcomingPrayer: nextTuple.0,
-      upcomingPrayerDate: nextTuple.1
+      upcomingPrayerDate: nextTuple.1,
+      prayerTimes: todayPrayerTimes
     )
   }
 
