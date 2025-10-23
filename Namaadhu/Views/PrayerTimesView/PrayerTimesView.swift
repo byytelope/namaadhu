@@ -1,9 +1,6 @@
 import GRDB
 import SwiftUI
-
-#if canImport(Toasts)
-  import Toasts
-#endif
+import Toasts
 
 struct PrayerTimesView: View {
   var selectedIsland: Island
@@ -17,7 +14,7 @@ struct PrayerTimesView: View {
   @State private var prayerTimes: PrayerTimes?
   @State private var errorMessage: String?
 
-  private var isiPhone: Bool {
+  private var isCompact: Bool {
     horizontalSizeClass == .compact
   }
 
@@ -52,68 +49,39 @@ struct PrayerTimesView: View {
 
   @ViewBuilder
   func BGGradient() -> some View {
-    #if os(iOS)
-      colorScheme == .light
-        ? RadialGradient(
-          colors: [
-            .accent,
-            .cream,
-          ],
-          center: isiPhone ? .bottom : .bottomTrailing,
-          startRadius: isiPhone ? 1000 : 1500,
-          endRadius: isiPhone ? 100 : 0
-        )
-        .edgesIgnoringSafeArea(.all)
-        : RadialGradient(
-          colors: [
-            .darkPurple,
-            .accent,
-            .cream,
-          ],
-          center: isiPhone ? .bottom : .bottomTrailing,
-          startRadius: isiPhone ? 900 : 1500,
-          endRadius: isiPhone ? 50 : 0
-        )
-        .edgesIgnoringSafeArea(.all)
-    #else
-      colorScheme == .light
-        ? RadialGradient(
-          colors: [
-            .accent,
-            .cream,
-          ],
-          center: .topTrailing,
-          startRadius: 700,
-          endRadius: 50
-        )
-        .edgesIgnoringSafeArea(.all)
-        : RadialGradient(
-          colors: [
-            .darkPurple,
-            .accent,
-            .cream,
-          ],
-          center: .topTrailing,
-          startRadius: 900,
-          endRadius: 50
-        )
-        .edgesIgnoringSafeArea(.all)
-    #endif
+    colorScheme == .light
+      ? RadialGradient(
+        colors: [
+          .accent,
+          .cream,
+        ],
+        center: isCompact ? .bottom : .bottomTrailing,
+        startRadius: isCompact ? 1000 : 1500,
+        endRadius: isCompact ? 100 : 0
+      )
+      .edgesIgnoringSafeArea(.all)
+      : RadialGradient(
+        colors: [
+          .darkPurple,
+          .accent,
+          .cream,
+        ],
+        center: isCompact ? .bottom : .bottomTrailing,
+        startRadius: isCompact ? 900 : 1500,
+        endRadius: isCompact ? 50 : 0
+      )
+      .edgesIgnoringSafeArea(.all)
   }
 
   @ToolbarContentBuilder
   private func toolbarContent() -> some ToolbarContent {
-    #if os(iOS)
-      if isiPhone {
-        ToolbarItem(placement: .bottomBar) {
-          Button("Location", systemImage: "location") {
-            dismiss()
-          }
+    if isCompact {
+      ToolbarItem(placement: .bottomBar) {
+        Button("Location", systemImage: "location") {
+          dismiss()
         }
       }
-    #else
-      ToolbarSpacer()
-    #endif
+    }
   }
 
   private func loadPrayerTimes() {
@@ -132,7 +100,5 @@ struct PrayerTimesView: View {
 
 #Preview {
   PrayerTimesView(selectedIsland: mockIslands[0])
-    #if canImport(Toasts)
-      .installToast(position: .top)
-    #endif
+    .installToast(position: .top)
 }

@@ -11,7 +11,7 @@ struct IslandsView: View {
   @State private var errorMessage: String?
   @State private var islands: [Island] = []
 
-  private var isiPhone: Bool {
+  private var isCompact: Bool {
     horizontalSizeClass == .compact
   }
 
@@ -32,22 +32,12 @@ struct IslandsView: View {
       .headerProminence(.increased)
       .listStyle(.sidebar)
       .toolbar {
-        let placement: ToolbarItemPlacement = {
-          #if os(iOS)
-            isiPhone ? .bottomBar : .automatic
-          #else
-            .automatic
-          #endif
-        }()
+        if isCompact {
+          DefaultToolbarItem(kind: .search, placement: .bottomBar)
+          ToolbarSpacer(placement: .bottomBar)
+        }
 
-        #if os(iOS)
-          if isiPhone {
-            DefaultToolbarItem(kind: .search, placement: .bottomBar)
-            ToolbarSpacer(placement: .bottomBar)
-          }
-        #endif
-
-        ToolbarItem(placement: placement) {
+        ToolbarItem(placement: isCompact ? .bottomBar : .automatic) {
           Button {
             errorMessage = "This feature hasn't been implemented yet."
           } label: {

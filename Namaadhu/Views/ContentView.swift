@@ -1,8 +1,5 @@
 import SwiftUI
-
-#if canImport(Toasts)
-  import Toasts
-#endif
+import Toasts
 
 struct ContentView: View {
   @Environment(\.preferencesService) private var prefs
@@ -40,7 +37,5 @@ struct ContentView: View {
 
 #Preview {
   ContentView()
-    #if canImport(Toasts)
-      .installToast(position: .top)
-    #endif
+    .installToast(position: .top)
 }

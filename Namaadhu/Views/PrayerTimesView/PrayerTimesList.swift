@@ -35,10 +35,8 @@ struct PrayerTimesList: View {
       }
     }
     .listStyle(.plain)
-    #if os(iOS)
-      .safeAreaPadding()
-      .listRowSpacing(6)
-    #endif
+    .safeAreaPadding()
+    .listRowSpacing(6)
     .scrollContentBackground(.hidden)
     .onDisappear {
       timerManager.setTickingEnabled(false)

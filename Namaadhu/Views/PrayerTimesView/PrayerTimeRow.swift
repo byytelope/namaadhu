@@ -1,17 +1,19 @@
-#if os(macOS)
-  import SwiftUI
+import SwiftUI
+import Toasts
 
-  struct PrayerTimeRow: View {
-    var prayer: Prayer
-    var date: Date
-    var isUpcoming: Bool = false
+struct PrayerTimeRow: View {
+  var prayer: Prayer
+  var date: Date
+  var isUpcoming: Bool = false
 
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.timerManager) private var timerManager
+  @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.timerManager) private var timerManager
+  @Environment(\.presentToast) private var presentToast
 
-    @State private var alertEnabled = false
+  @State private var alertEnabled = false
 
-    var body: some View {
+  var body: some View {
+    GlassEffectContainer {
       HStack {
         if isUpcoming {
           Group {
@@ -46,16 +48,13 @@
             }
 
             Text(timerManager.timeRemaining.formattedTime())
+              .contentTransition(.numericText())
+              .animation(.default, value: timerManager.timeRemaining)
               .monospacedDigit()
           }
           .fontWeight(.semibold)
-          .padding(10)
-          .background(
-            Capsule().fill(
-              colorScheme == .light
-                ? Material.thin.opacity(0.75) : Material.regular.opacity(0.75)
-            )
-          )
+          .padding()
+          .glassEffect(.regular.interactive())
         } else {
           HStack {
             Label {
@@ -86,7 +85,7 @@
             )
             .monospacedDigit()
           }
-          .padding(10)
+          .padding()
           .background(
             Capsule().fill(
               colorScheme == .light
@@ -95,30 +94,46 @@
           )
         }
       }
-      .symbolVariant(.fill)
-      .symbolRenderingMode(.hierarchical)
-      .symbolColorRenderingMode(.gradient)
-      .padding(.vertical, 3)
-      .listRowInsets(EdgeInsets())
-      .listRowSeparator(.hidden)
-      .listRowBackground(Color.clear)
-      .swipeActions {
-        Group {
-          alertEnabled
-            ? Button("Disable alert", systemImage: "bell.slash") {
-              alertEnabled = false
-            }
-            : Button("Enable alert", systemImage: "bell") {
-              alertEnabled = true
-            }
-        }
-        .labelStyle(.iconOnly)
-        .tint(
-          alertEnabled
-            ? Color(NSColor.tertiarySystemFill)
-            : .orange
-        )
+    }
+    .symbolVariant(.fill)
+    .symbolRenderingMode(.hierarchical)
+    .symbolColorRenderingMode(.gradient)
+    .listRowInsets(EdgeInsets())
+    .listRowSeparator(.hidden)
+    .listRowBackground(Color.clear)
+    .swipeActions {
+      Group {
+        alertEnabled
+          ? Button("Disable alert", systemImage: "bell.slash") {
+            presentToast(
+              .init(
+                icon: Image(systemName: "bell.slash")
+                  .symbolVariant(.fill)
+                  .symbolColorRenderingMode(.gradient)
+                  .foregroundStyle(.red),
+                message: "Alerts disabled for \(prayer.displayName)"
+              )
+            )
+            alertEnabled = false
+          }
+          : Button("Enable alert", systemImage: "bell") {
+            presentToast(
+              .init(
+                icon: Image(systemName: "bell")
+                  .symbolVariant(.fill)
+                  .symbolColorRenderingMode(.gradient),
+                message: "Alerts enabled for \(prayer.displayName)"
+              )
+            )
+            alertEnabled = true
+          }
       }
+      .labelStyle(.iconOnly)
+      .tint(
+        alertEnabled
+          ? Color(UIColor.tertiarySystemFill)
+          : .orange
+      )
     }
   }
-#endif
+}
