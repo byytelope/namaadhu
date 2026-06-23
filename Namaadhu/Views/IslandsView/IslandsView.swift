@@ -2,7 +2,6 @@ import GRDB
 import SwiftUI
 
 struct IslandsView: View {
-  var searchText: String
   @Binding var selectedIsland: Island?
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -10,39 +9,35 @@ struct IslandsView: View {
 
   @State private var errorMessage: String?
   @State private var islands: [Island] = []
-
-  private var isCompact: Bool {
-    horizontalSizeClass == .compact
-  }
+  @State private var searchText: String = ""
 
   var body: some View {
-    NavigationStack {
-      List(selection: $selectedIsland) {
-        ForEach(groupedIslands, id: \.atoll) { group in
-          Section(group.atoll.fullName) {
-            ForEach(group.islands) { island in
-              Text(island.island)
-                .tag(island)
-            }
+    List(selection: $selectedIsland) {
+      ForEach(groupedIslands, id: \.atoll) { group in
+        Section(group.atoll.fullName) {
+          ForEach(group.islands) { island in
+            Text(island.island)
+              .tag(island)
           }
-          .sectionIndexLabel(group.atoll.rawValue)
         }
       }
-      .navigationTitle("Islands")
-      .headerProminence(.increased)
-      .listStyle(.sidebar)
-      .toolbar {
-        if isCompact {
-          DefaultToolbarItem(kind: .search, placement: .bottomBar)
-          ToolbarSpacer(placement: .bottomBar)
-        }
-
-        ToolbarItem(placement: isCompact ? .bottomBar : .automatic) {
-          Button {
-            errorMessage = "This feature hasn't been implemented yet."
-          } label: {
-            Label("Automatic", systemImage: "location.viewfinder")
-          }
+    }
+    .navigationTitle("Islands")
+    .headerProminence(.increased)
+    .listStyle(.sidebar)
+    .scrollEdgeEffectStyle(.soft, for: .all)
+    .searchable(
+      text: $searchText,
+      placement: .sidebar,
+      prompt: "Search islands",
+    )
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          errorMessage =
+            "This feature hasn't been implemented yet."
+        } label: {
+          Label("Automatic", systemImage: "location.viewfinder")
         }
       }
     }
@@ -103,7 +98,7 @@ struct IslandsViewPreview: View {
   @State private var selectedIsland: Island? = mockIslands[0]
 
   var body: some View {
-    IslandsView(searchText: "", selectedIsland: $selectedIsland)
+    IslandsView(selectedIsland: $selectedIsland)
   }
 }
 

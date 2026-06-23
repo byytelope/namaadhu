@@ -19,19 +19,14 @@ struct PrayerTimesView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        BGGradient()
-
-        PrayerTimesList(
-          prayerTimes: prayerTimes,
-          selectedDate: $selectedDate
-        )
-      }
-      .navigationTitle("Namaadhu")
-      .navigationSubtitle(selectedIsland.name)
-      .toolbar(content: toolbarContent)
-    }
+    PrayerTimesList(
+      prayerTimes: prayerTimes,
+      selectedDate: $selectedDate
+    )
+    .navigationTitle("Namaadhu")
+    .navigationSubtitle(selectedIsland.name)
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar(content: toolbarContent)
     .onChange(of: selectedDate) { oldDate, newDate in
       if oldDate != newDate {
         loadPrayerTimes()
@@ -45,32 +40,6 @@ struct PrayerTimesView: View {
     } message: {
       Text(errorMessage ?? "")
     }
-  }
-
-  @ViewBuilder
-  func BGGradient() -> some View {
-    colorScheme == .light
-      ? RadialGradient(
-        colors: [
-          .accent,
-          .cream,
-        ],
-        center: isCompact ? .bottom : .bottomTrailing,
-        startRadius: isCompact ? 1000 : 1500,
-        endRadius: isCompact ? 100 : 0
-      )
-      .edgesIgnoringSafeArea(.all)
-      : RadialGradient(
-        colors: [
-          .darkPurple,
-          .accent,
-          .cream,
-        ],
-        center: isCompact ? .bottom : .bottomTrailing,
-        startRadius: isCompact ? 900 : 1500,
-        endRadius: isCompact ? 50 : 0
-      )
-      .edgesIgnoringSafeArea(.all)
   }
 
   @ToolbarContentBuilder
@@ -100,5 +69,4 @@ struct PrayerTimesView: View {
 
 #Preview {
   PrayerTimesView(selectedIsland: mockIslands[0])
-    .installToast(position: .top)
 }

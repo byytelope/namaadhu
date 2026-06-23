@@ -29,7 +29,8 @@ struct PrayerTimesList: View {
           PrayerTimeRow(
             prayer: prayer,
             date: date,
-            isUpcoming: isToday && prayer == timerManager.upcomingPrayer,
+            isUpcoming: isToday
+              && prayer == timerManager.upcomingPrayer,
           )
         }
       }
