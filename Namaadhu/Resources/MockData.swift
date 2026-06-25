@@ -64,9 +64,9 @@ let mockIslands: [Island] = [
 ]
 
 let mockPrayerTimes: [PrayerTimes] = [
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 1,
-    dayOfYear: 0,
+    dayOffset: 0,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 735,
@@ -74,9 +74,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1085,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 1,
-    dayOfYear: 1,
+    dayOffset: 1,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 736,
@@ -84,9 +84,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1086,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 1,
-    dayOfYear: 2,
+    dayOffset: 2,
     fajrMinutes: 302,
     sunriseMinutes: 378,
     dhuhrMinutes: 736,
@@ -94,9 +94,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1086,
     ishaMinutes: 1164
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 2,
-    dayOfYear: 0,
+    dayOffset: 0,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 735,
@@ -104,9 +104,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1085,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 2,
-    dayOfYear: 1,
+    dayOffset: 1,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 736,
@@ -114,9 +114,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1086,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 2,
-    dayOfYear: 2,
+    dayOffset: 2,
     fajrMinutes: 302,
     sunriseMinutes: 378,
     dhuhrMinutes: 736,
@@ -124,9 +124,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1086,
     ishaMinutes: 1164
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 3,
-    dayOfYear: 0,
+    dayOffset: 0,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 735,
@@ -134,9 +134,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1085,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 3,
-    dayOfYear: 1,
+    dayOffset: 1,
     fajrMinutes: 301,
     sunriseMinutes: 377,
     dhuhrMinutes: 736,
@@ -144,9 +144,9 @@ let mockPrayerTimes: [PrayerTimes] = [
     maghribMinutes: 1086,
     ishaMinutes: 1163
   ),
-  PrayerTimes(
+  makeMockPrayerTimes(
     categoryId: 3,
-    dayOfYear: 2,
+    dayOffset: 2,
     fajrMinutes: 302,
     sunriseMinutes: 378,
     dhuhrMinutes: 736,
@@ -155,3 +155,34 @@ let mockPrayerTimes: [PrayerTimes] = [
     ishaMinutes: 1164
   ),
 ]
+
+private func makeMockPrayerTimes(
+  categoryId: Int,
+  dayOffset: Int,
+  fajrMinutes: Int,
+  sunriseMinutes: Int,
+  dhuhrMinutes: Int,
+  asrMinutes: Int,
+  maghribMinutes: Int,
+  ishaMinutes: Int
+) -> PrayerTimes {
+  let calendar = Calendar.current
+  let date = calendar.date(
+    byAdding: .day,
+    value: dayOffset,
+    to: calendar.startOfDay(for: .now)
+  )!
+
+  return PrayerTimes(
+    categoryId: categoryId,
+    date: date,
+    values: PrayerTimes.Values(
+      fajr: fajrMinutes,
+      sunrise: sunriseMinutes,
+      dhuhr: dhuhrMinutes,
+      asr: asrMinutes,
+      maghrib: maghribMinutes,
+      isha: ishaMinutes
+    )
+  )
+}

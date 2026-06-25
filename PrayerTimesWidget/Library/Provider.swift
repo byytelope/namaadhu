@@ -35,43 +35,34 @@ struct Provider: TimelineProvider {
       return .empty
     }
 
-    let calendar = Calendar.current
-
     guard let todayPrayerTimes = loadPrayerTimes(for: island, on: date) else {
       return .empty
     }
 
-    let tomorrow = calendar.date(byAdding: .day, value: 1, to: date)!
-    let tomorrowPrayerTimes = loadPrayerTimes(for: island, on: tomorrow)
-
-    var allOccurrences: [(Prayer, Date)] = todayPrayerTimes.orderedDates()
-
-    if let tomorrowPT = tomorrowPrayerTimes {
-      let tomorrowOccurrences = tomorrowPT.orderedDates()
-      allOccurrences.append(contentsOf: tomorrowOccurrences)
-    }
-
-    guard let nextTuple = allOccurrences.first(where: { $0.1 > date }) else {
+    guard
+      let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: date)
+    else {
       return .empty
     }
 
-    var currentPrayer: Prayer?
-    if let upcomingIndex = allOccurrences.firstIndex(where: {
-      $0.0 == nextTuple.0 && $0.1 == nextTuple.1
-    }) {
-      if upcomingIndex > 0 {
-        currentPrayer = allOccurrences[upcomingIndex - 1].0
-      } else {
-        currentPrayer = .isha
-      }
+    let tomorrowPrayerTimes = loadPrayerTimes(for: island, on: tomorrow)
+
+    guard
+      let state = PrayerSchedule.state(
+        at: date,
+        today: todayPrayerTimes,
+        tomorrow: tomorrowPrayerTimes
+      )
+    else {
+      return .empty
     }
 
     return PrayerTimesEntry(
       date: date,
       selectedIslandName: island.name,
-      currentPrayer: currentPrayer,
-      upcomingPrayer: nextTuple.0,
-      upcomingPrayerDate: nextTuple.1,
+      currentPrayer: state.currentPrayer,
+      upcomingPrayer: state.upcomingPrayer,
+      upcomingPrayerDate: state.upcomingPrayerDate,
       prayerTimes: todayPrayerTimes
     )
   }

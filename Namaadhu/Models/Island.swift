@@ -21,10 +21,6 @@ struct Island: FetchableRecord, Identifiable, Codable, Equatable, Hashable {
   }
 }
 
-struct IslandCategory: FetchableRecord, Identifiable, Decodable {
-  let id: Int
-}
-
 enum Atoll: String, CaseIterable, Codable, Hashable, Identifiable,
   DatabaseValueConvertible
 {
@@ -77,27 +73,6 @@ enum Atoll: String, CaseIterable, Codable, Hashable, Identifiable,
   }
 
   var displayOrder: Int {
-    switch self {
-    case .haaAlifu: return 1
-    case .haaDhaalu: return 2
-    case .shaviyani: return 3
-    case .noonu: return 4
-    case .raa: return 5
-    case .baa: return 6
-    case .lhaviyani: return 7
-    case .kaafu: return 8
-    case .alifuAlifu: return 9
-    case .alifuDhaalu: return 10
-    case .vaavu: return 11
-    case .meemu: return 12
-    case .faafu: return 13
-    case .dhaalu: return 14
-    case .thaa: return 15
-    case .laamu: return 16
-    case .gaafuAlifu: return 17
-    case .gaafuDhaalu: return 18
-    case .gnaviyani: return 19
-    case .seenu: return 20
-    }
+    Self.allCases.firstIndex(of: self) ?? .max
   }
 }

@@ -3,12 +3,6 @@ import SwiftUI
 struct SystemMediumView: View {
   var entry: Provider.Entry
 
-  private let timeFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "HH:mm"
-    return formatter
-  }()
-
   var body: some View {
     VStack(alignment: .leading, spacing: 2) {
       if let current = entry.currentPrayer,

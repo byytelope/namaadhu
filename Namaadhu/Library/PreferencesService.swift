@@ -15,16 +15,13 @@ class PreferencesService {
 
   var selectedIsland: Island? {
     didSet {
-      if let island = selectedIsland {
-        do {
-          let data = try JSONEncoder().encode(island)
-          storage.selectedIslandData = data
-          WidgetCenter.shared.reloadTimelines(ofKind: "PrayerTimesWidget")
-        } catch {
-          print("PreferencesService: failed to encode selectedIsland:", error)
+      do {
+        storage.selectedIslandData = try selectedIsland.map {
+          try JSONEncoder().encode($0)
         }
-      } else {
-        storage.selectedIslandData = nil
+        WidgetCenter.shared.reloadTimelines(ofKind: "PrayerTimesWidget")
+      } catch {
+        print("PreferencesService: failed to encode selectedIsland:", error)
       }
     }
   }

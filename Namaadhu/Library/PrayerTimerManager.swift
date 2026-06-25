@@ -1,4 +1,3 @@
-import Combine
 import SwiftUI
 
 @Observable
@@ -7,25 +6,25 @@ class PrayerTimerManager {
   fileprivate(set) var upcomingPrayer: Prayer?
   fileprivate(set) var timeRemaining: TimeInterval = 0
 
-  private var prayerTimes: PrayerTimes?
+  private var todayPrayerTimes: PrayerTimes?
+  private var tomorrowPrayerTimes: PrayerTimes?
+  private var upcomingPrayerDate: Date?
   private var singleShot: DispatchSourceTimer?
   private var tickTimer: Timer?
   private var tickEnabled = false
-  private var cancellables = Set<AnyCancellable>()
-  private let calendar: Calendar
-
-  init() {
-    self.calendar = .current
-  }
 
   deinit {
     cancelSingleShot()
     stopTickTimer()
   }
 
-  func update(prayerTimes: PrayerTimes?) {
-    self.prayerTimes = prayerTimes
-    computeAndSchedule()
+  func update(
+    today: PrayerTimes?,
+    tomorrow: PrayerTimes?
+  ) {
+    todayPrayerTimes = today
+    tomorrowPrayerTimes = tomorrow
+    refresh()
   }
 
   func setTickingEnabled(_ enabled: Bool) {
@@ -33,71 +32,63 @@ class PrayerTimerManager {
     tickEnabled = enabled
 
     if enabled {
+      refresh()
       startTickTimer()
     } else {
       stopTickTimer()
     }
   }
 
-  private func computeAndSchedule() {
+  private func refresh() {
     cancelSingleShot()
 
-    guard let pt = prayerTimes else {
-      currentPrayer = nil
-      upcomingPrayer = nil
-      timeRemaining = 0
-
+    guard
+      let todayPrayerTimes,
+      let state = PrayerSchedule.state(
+        at: .now,
+        today: todayPrayerTimes,
+        tomorrow: tomorrowPrayerTimes
+      )
+    else {
+      clearState()
       return
     }
 
-    let now = Date()
-    let occurrences = pt.orderedDates()
+    currentPrayer = state.currentPrayer
+    upcomingPrayer = state.upcomingPrayer
+    upcomingPrayerDate = state.upcomingPrayerDate
+    timeRemaining = max(0, state.upcomingPrayerDate.timeIntervalSinceNow)
 
-    let tomorrowDay = calendar.date(byAdding: .day, value: 1, to: pt.date)!
-    let fajrComps = pt[.fajr]
-    let fajrTomorrow = calendar.date(
-      byAdding: fajrComps,
-      to: calendar.startOfDay(for: tomorrowDay)
-    )!
-    var allOccurrences = occurrences
-    allOccurrences.append((.fajr, fajrTomorrow))
+    scheduleSingleShot(at: state.upcomingPrayerDate)
+  }
 
-    guard let nextTuple = allOccurrences.first(where: { $0.1 > now }) else {
-      currentPrayer = nil
-      upcomingPrayer = nil
+  private func tick() {
+    guard let upcomingPrayerDate else {
       timeRemaining = 0
-
       return
     }
 
-    let upcoming = nextTuple.0
-    upcomingPrayer = upcoming
-    timeRemaining = nextTuple.1.timeIntervalSince(now)
-
-    if let upcomingIndex = allOccurrences.firstIndex(where: {
-      $0.0 == upcoming && $0.1 == nextTuple.1
-    }) {
-      let prevIndex =
-        (upcomingIndex - 1 + allOccurrences.count) % allOccurrences.count
-      currentPrayer = allOccurrences[prevIndex].0
+    let remaining = upcomingPrayerDate.timeIntervalSinceNow
+    if remaining > 0 {
+      timeRemaining = remaining
     } else {
-      currentPrayer = nil
+      refresh()
     }
+  }
 
-    scheduleSingleShot(at: nextTuple.1)
+  private func clearState() {
+    currentPrayer = nil
+    upcomingPrayer = nil
+    upcomingPrayerDate = nil
+    timeRemaining = 0
   }
 
   private func scheduleSingleShot(at date: Date) {
-    cancelSingleShot()
-
-    let interval = max(0.0, date.timeIntervalSinceNow)
-    let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+    let interval = max(0, date.timeIntervalSinceNow)
+    let timer = DispatchSource.makeTimerSource(queue: .main)
     timer.schedule(deadline: .now() + interval, leeway: .seconds(1))
     timer.setEventHandler { [weak self] in
-      guard let self = self else { return }
-      DispatchQueue.main.async {
-        self.computeAndSchedule()
-      }
+      self?.refresh()
     }
     singleShot = timer
     timer.resume()
@@ -111,37 +102,11 @@ class PrayerTimerManager {
   private func startTickTimer() {
     stopTickTimer()
 
-    tickTimer =
-      Timer
-      .scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-        guard let self = self else { return }
-
-        if let pt = self.prayerTimes, let upcoming = self.upcomingPrayer {
-          let now = Date()
-          let occurrences = pt.orderedDates()
-          let tomorrowDay = self.calendar.date(
-            byAdding: .day,
-            value: 1,
-            to: pt.date
-          )!
-          let fajrTomorrow = self.calendar.date(
-            byAdding: pt[.fajr],
-            to: self.calendar.startOfDay(for: tomorrowDay)
-          )!
-          var all = occurrences
-          all.append((.fajr, fajrTomorrow))
-
-          if let tuple = all.first(where: { $0.0 == upcoming && $0.1 > now }) {
-            self.timeRemaining = tuple.1.timeIntervalSince(now)
-          } else {
-            self.computeAndSchedule()
-          }
-        } else {
-          self.timeRemaining = 0
-        }
-      }
-
-    RunLoop.main.add(tickTimer!, forMode: .common)
+    let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+      self?.tick()
+    }
+    tickTimer = timer
+    RunLoop.main.add(timer, forMode: .common)
   }
 
   private func stopTickTimer() {
@@ -152,24 +117,49 @@ class PrayerTimerManager {
 
 @Observable
 class MockPrayerTimerManager: PrayerTimerManager {
+  private var mockTimer: Timer?
+
   override init() {
     super.init()
-    self.currentPrayer = .dhuhr
-    self.upcomingPrayer = .asr
-    self.timeRemaining = 3600
+    currentPrayer = .dhuhr
+    upcomingPrayer = .asr
+    timeRemaining = 3600
   }
 
-  override func update(prayerTimes: PrayerTimes?) {
+  deinit {
+    mockTimer?.invalidate()
+  }
+
+  override func update(
+    today: PrayerTimes?,
+    tomorrow: PrayerTimes?
+  ) {
   }
 
   override func setTickingEnabled(_ enabled: Bool) {
-    if enabled {
-      Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-        [weak self] _ in
-        guard let self = self else { return }
-        self.timeRemaining = max(0, self.timeRemaining - 1)
-      }
+    mockTimer?.invalidate()
+    mockTimer = nil
+
+    guard enabled else { return }
+
+    let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+      guard let self else { return }
+      self.timeRemaining = max(0, self.timeRemaining - 1)
     }
+    mockTimer = timer
+    RunLoop.main.add(timer, forMode: .common)
+  }
+
+  func advancePrayer() {
+    guard let upcomingPrayer else { return }
+
+    let prayers = Prayer.allCases
+    let upcomingIndex = prayers.firstIndex(of: upcomingPrayer) ?? 0
+
+    currentPrayer = upcomingPrayer
+    self.upcomingPrayer =
+      prayers[(upcomingIndex + 1) % prayers.count]
+    timeRemaining = 3602
   }
 }
 
@@ -191,7 +181,7 @@ extension TimeInterval {
 }
 
 private struct PrayerTimerManagerKey: EnvironmentKey {
-  static let defaultValue = {
+  static let defaultValue: PrayerTimerManager = {
     if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
     {
       MockPrayerTimerManager()

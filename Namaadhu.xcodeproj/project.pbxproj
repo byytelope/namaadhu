@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6B1856292E9CF2F40014E858 /* Toasts in Frameworks */ = {isa = PBXBuildFile; productRef = 6B1856282E9CF2F40014E858 /* Toasts */; settings = {ATTRIBUTES = (Required, ); }; };
 		6BB97FE82E82401C00E2412F /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 6BB97FE72E82401C00E2412F /* GRDB */; };
 		6BC62CE42EA6C030007541E8 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BC62CE32EA6C030007541E8 /* WidgetKit.framework */; };
 		6BC62CE62EA6C030007541E8 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BC62CE52EA6C030007541E8 /* SwiftUI.framework */; };
@@ -97,7 +96,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6B1856292E9CF2F40014E858 /* Toasts in Frameworks */,
 				6BB97FE82E82401C00E2412F /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -168,7 +166,6 @@
 			name = iOS;
 			packageProductDependencies = (
 				6BB97FE72E82401C00E2412F /* GRDB */,
-				6B1856282E9CF2F40014E858 /* Toasts */,
 			);
 			productName = Namaadhu;
 			productReference = 6B92F9692E823D780031718F /* iOS.app */;
@@ -226,7 +223,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6BB97FE62E82401C00E2412F /* XCRemoteSwiftPackageReference "GRDB.swift" */,
-				6B1856272E9CF2F40014E858 /* XCRemoteSwiftPackageReference "swiftui-toasts" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6B92F96A2E823D780031718F /* Products */;
@@ -618,14 +614,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		6B1856272E9CF2F40014E858 /* XCRemoteSwiftPackageReference "swiftui-toasts" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sunghyun-k/swiftui-toasts";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.1;
-			};
-		};
 		6BB97FE62E82401C00E2412F /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift.git";
@@ -637,11 +625,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		6B1856282E9CF2F40014E858 /* Toasts */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6B1856272E9CF2F40014E858 /* XCRemoteSwiftPackageReference "swiftui-toasts" */;
-			productName = Toasts;
-		};
 		6BB97FE72E82401C00E2412F /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6BB97FE62E82401C00E2412F /* XCRemoteSwiftPackageReference "GRDB.swift" */;

@@ -3,7 +3,6 @@ import SwiftUI
 
 protocol DatabaseServiceProtocol {
   func fetchAllIslands() throws -> [Island]
-  func fetchIslandByID(id: Int) throws -> Island?
   func fetchPrayerTime(for island: Island, in date: Date) throws
     -> PrayerTimes?
 }
@@ -24,25 +23,19 @@ struct DatabaseService: DatabaseServiceProtocol {
     }
   }
 
-  func fetchIslandByID(id: Int) throws -> Island? {
-    try reader.read { db in
-      try Island.fetchOne(
-        db,
-        sql: "SELECT * FROM islands WHERE id=?",
-        arguments: [id]
-      )
-    }
-  }
-
   func fetchPrayerTime(for island: Island, in date: Date) throws
     -> PrayerTimes?
   {
     return try reader.read { db in
-      try PrayerTimes.fetchOne(
+      try PrayerTimesRecord.fetchOne(
         db,
         sql: "SELECT * FROM prayer_times WHERE category_id=? AND date=?",
-        arguments: [island.categoryId, date.dayOfYear]
+        arguments: [island.categoryId, date.prayerTimesDatabaseDayIndex]
       )
+      .map {
+        $0.prayerTimes(on: date)
+          .applyingOffset(island.minutes)
+      }
     }
   }
 }
@@ -50,36 +43,72 @@ struct DatabaseService: DatabaseServiceProtocol {
 struct MockDatabaseService: DatabaseServiceProtocol {
   func fetchAllIslands() throws -> [Island] { mockIslands }
 
-  func fetchIslandByID(id: Int) throws -> Island? {
-    return mockIslands.first(where: { $0.id == id })
-  }
-
   func fetchPrayerTime(for island: Island, in date: Date) throws
     -> PrayerTimes?
   {
-    let cal = Calendar.current
-    let startOfToday = cal.startOfDay(for: Date())
-    let startOfTarget = cal.startOfDay(for: date)
-    let day =
-      cal.dateComponents([.day], from: startOfToday, to: startOfTarget).day ?? 0
-
     return
       mockPrayerTimes
       .first(where: {
-        $0.categoryId == island.categoryId && $0.date.dayOfYear == day
+        $0.categoryId == island.categoryId
+          && Calendar.current.isDate($0.date, inSameDayAs: date)
       })
+      .map { $0.applyingOffset(island.minutes) }
   }
 }
 
-extension Calendar {
+private struct PrayerTimesRecord: FetchableRecord {
+  let categoryId: Int
+  let values: PrayerTimes.Values
+
+  init(row: Row) throws {
+    categoryId = try Self.requiredInt("category_id", from: row)
+    values = PrayerTimes.Values(
+      fajr: try Self.requiredInt(Prayer.fajr.rawValue, from: row),
+      sunrise: try Self.requiredInt(Prayer.sunrise.rawValue, from: row),
+      dhuhr: try Self.requiredInt(Prayer.dhuhr.rawValue, from: row),
+      asr: try Self.requiredInt(Prayer.asr.rawValue, from: row),
+      maghrib: try Self.requiredInt(Prayer.maghrib.rawValue, from: row),
+      isha: try Self.requiredInt(Prayer.isha.rawValue, from: row)
+    )
+  }
+
+  func prayerTimes(on date: Date) -> PrayerTimes {
+    PrayerTimes(
+      categoryId: categoryId,
+      date: date,
+      values: values
+    )
+  }
+
+  private static func requiredInt(_ column: String, from row: Row) throws -> Int {
+    guard let value: Int = row[column] else {
+      throw PrayerTimesRecordError.missingValue(column)
+    }
+
+    return value
+  }
+}
+
+private enum PrayerTimesRecordError: LocalizedError {
+  case missingValue(String)
+
+  var errorDescription: String? {
+    switch self {
+    case .missingValue(let column):
+      "Missing prayer-time value for database column '\(column)'."
+    }
+  }
+}
+
+private extension Calendar {
   func isLeapYear(_ year: Int) -> Bool {
     let startOfYear = date(from: DateComponents(year: year))!
     return range(of: .day, in: .year, for: startOfYear)!.count == 366
   }
 }
 
-extension Date {
-  var dayOfYear: Int {
+private extension Date {
+  var prayerTimesDatabaseDayIndex: Int {
     let calendar = Calendar.current
     var ord: Int {
       let _ord = calendar.ordinality(of: .day, in: .year, for: self) ?? 1

@@ -1,37 +1,79 @@
 import SwiftUI
-import Toasts
 
 struct ContentView: View {
   @Environment(\.preferencesService) private var prefs
 
-  @State private var visibility: NavigationSplitViewVisibility = .all
+  @Namespace private var islandTransition
+  @State private var isSelectingIsland = false
 
   var body: some View {
-    NavigationSplitView {
-      IslandsView(
-        selectedIsland: prefs.selectedIslandBinding
-      )
-    } detail: {
-      NavigationStack {
-        if let island = prefs.selectedIsland {
-          PrayerTimesView(selectedIsland: island)
-        } else {
-          ContentUnavailableView(
+    NavigationStack {
+      if let island = prefs.selectedIsland {
+        PrayerTimesView(
+          selectedIsland: island,
+          islandTransition: islandTransition,
+          onSelectLocation: {
+            isSelectingIsland = true
+          }
+        )
+      } else {
+        ContentUnavailableView {
+          Label(
             "Select an island to continue",
-            systemImage: "location.slash.circle.fill",
-            description: Text(
-              "Please select an island from the list."
-            )
+            systemImage: "location.slash.circle.fill"
+          )
+        } description: {
+          Text("Please select an island from the list.")
+        } actions: {
+          Button("Choose Island", systemImage: "location") {
+            isSelectingIsland = true
+          }
+          .buttonStyle(.borderedProminent)
+          .matchedTransitionSource(
+            id: "islands",
+            in: islandTransition
           )
         }
       }
-      .navigationBarBackButtonHidden()
     }
-    .scrollEdgeEffectStyle(.soft, for: .all)
+    .sheet(isPresented: $isSelectingIsland) {
+      NavigationStack {
+        IslandsView(
+          selectedIsland: prefs.selectedIslandBinding
+        )
+      }
+      .navigationTransition(
+        .zoom(sourceID: "islands", in: islandTransition)
+      )
+    }
+  }
+}
+
+private struct ContentViewPreview: View {
+  @State private var preferencesService: PreferencesService
+  @State private var timerManager = MockPrayerTimerManager()
+
+  init() {
+    let preferencesService = PreferencesService()
+    preferencesService.selectedIsland = mockIslands[0]
+    _preferencesService = State(initialValue: preferencesService)
+  }
+
+  var body: some View {
+    ContentView()
+      .environment(\.preferencesService, preferencesService)
+      .environment(\.timerManager, timerManager)
+      .overlay(alignment: .bottomTrailing) {
+        Button("Advance Prayer", systemImage: "forward.fill") {
+          timerManager.advancePrayer()
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.trailing)
+        .padding(.bottom, 64)
+      }
   }
 }
 
 #Preview {
-  ContentView()
-    .installToast(position: .top)
+  ContentViewPreview()
 }
