@@ -9,12 +9,16 @@ struct IslandsView: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var errorMessage: String?
-  @State private var expandedAtolls: Set<Atoll> = []
   @State private var isLocating = false
   @State private var islands: [Island] = []
+  @State private var expandedAtoll: Atoll?
   @State private var locationService = CurrentLocationService()
-  @State private var preSearchExpandedAtolls: Set<Atoll>?
   @State private var searchText: String = ""
+
+  init(selectedIsland: Binding<Island?>) {
+    self._selectedIsland = selectedIsland
+    self._expandedAtoll = State(initialValue: selectedIsland.wrappedValue?.atoll)
+  }
 
   private var isShowingError: Binding<Bool> {
     Binding(
@@ -31,32 +35,12 @@ struct IslandsView: View {
     ScrollView {
       LazyVStack(spacing: 12) {
         ForEach(groupedIslands, id: \.atoll) { group in
-          DisclosureGroup(
-            isExpanded: expansionBinding(for: group.atoll)
-          ) {
-            VStack(spacing: 0) {
-              ForEach(group.islands) { island in
-                islandButton(island)
-
-                if island.id != group.islands.last?.id {
-                  Divider()
-                }
-              }
-            }
-            .padding(.top, 8)
-          } label: {
-            Text(group.atoll.fullName)
-              .font(.headline)
-          }
-          .padding()
-          .background(
-            .regularMaterial,
-            in: RoundedRectangle(cornerRadius: 20)
-          )
+          atollDisclosureCard(group)
         }
       }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
     }
-    .safeAreaPadding()
     .navigationTitle("Islands")
     .toolbarTitleDisplayMode(.inline)
     .searchable(
@@ -95,17 +79,64 @@ struct IslandsView: View {
     .task {
       loadIslands()
     }
-    .onChange(of: searchQuery) { oldQuery, newQuery in
-      updateExpandedAtolls(
-        from: oldQuery,
-        to: newQuery
-      )
-    }
     .alert("Error", isPresented: isShowingError) {
       Button("OK") { errorMessage = nil }
     } message: {
       Text(errorMessage ?? "")
     }
+  }
+
+  private func atollDisclosureCard(
+    _ group: (atoll: Atoll, islands: [Island])
+  ) -> some View {
+    let isExpanded = isExpanded(group.atoll)
+
+    return VStack(spacing: 0) {
+      Button {
+        if !isSearching {
+          withAnimation(.spring) {
+            toggleExpansion(for: group.atoll)
+          }
+        }
+      } label: {
+        HStack {
+          Text(group.atoll.fullName)
+            .fontDesign(.rounded)
+            .fontWeight(.semibold)
+            .foregroundStyle(.primary)
+
+          Spacer()
+
+          Image(systemName: "chevron.forward")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .rotationEffect(
+              isExpanded ? .degrees(90) : .zero
+            )
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded {
+        VStack(spacing: 0) {
+          ForEach(group.islands) { island in
+            islandButton(island)
+
+            if island.id != group.islands.last?.id {
+              Divider()
+            }
+          }
+        }
+        .padding(.top)
+        .padding(.leading)
+      }
+    }
+    .padding()
+    .background(
+      .regularMaterial,
+      in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+    )
   }
 
   private func islandButton(_ island: Island) -> some View {
@@ -119,24 +150,38 @@ struct IslandsView: View {
 
         Spacer()
 
-        if island == selectedIsland {
-          Image(systemName: "checkmark")
-            .fontWeight(.semibold)
-            .foregroundStyle(.accent)
+        ZStack {
+          if island == selectedIsland {
+            Image(systemName: "checkmark.circle.fill")
+              .font(.title3)
+              .symbolRenderingMode(.palette)
+              .foregroundStyle(.white, Color.accentColor.gradient)
+              .transition(.symbolEffect(.drawOn))
+          }
         }
+        .frame(width: 20, height: 20)
       }
-      .padding(.vertical, 12)
+      .padding(.vertical, 10)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
   }
 
+  private func isExpanded(_ atoll: Atoll) -> Bool {
+    isSearching || expandedAtoll == atoll
+  }
+
+  private func toggleExpansion(for atoll: Atoll) {
+    if expandedAtoll == atoll {
+      expandedAtoll = nil
+    } else {
+      expandedAtoll = atoll
+    }
+  }
+
   private func loadIslands() {
     do {
       islands = try db.fetchAllIslands()
-      if searchQuery.isEmpty, let selectedIsland {
-        expandedAtolls.insert(selectedIsland.atoll)
-      }
     } catch let decodingError as RowDecodingError {
       print("RowDecodingError:", decodingError)
       errorMessage = String(describing: decodingError)
@@ -170,42 +215,10 @@ struct IslandsView: View {
     islands.min { lhs, rhs in
       location.distance(
         from: CLLocation(latitude: lhs.latitude, longitude: lhs.longitude)
-      ) < location.distance(
-        from: CLLocation(latitude: rhs.latitude, longitude: rhs.longitude)
       )
-    }
-  }
-
-  private func expansionBinding(for atoll: Atoll) -> Binding<Bool> {
-    Binding(
-      get: {
-        expandedAtolls.contains(atoll)
-      },
-      set: { isExpanded in
-        if isExpanded {
-          expandedAtolls.insert(atoll)
-        } else {
-          expandedAtolls.remove(atoll)
-        }
-      }
-    )
-  }
-
-  private func updateExpandedAtolls(
-    from oldQuery: String,
-    to newQuery: String
-  ) {
-    if oldQuery.isEmpty, !newQuery.isEmpty {
-      preSearchExpandedAtolls = expandedAtolls
-    }
-
-    if newQuery.isEmpty {
-      expandedAtolls = preSearchExpandedAtolls
-        ?? selectedIsland.map { Set([$0.atoll]) }
-        ?? []
-      preSearchExpandedAtolls = nil
-    } else {
-      expandedAtolls = Set(groupedIslands.map(\.atoll))
+        < location.distance(
+          from: CLLocation(latitude: rhs.latitude, longitude: rhs.longitude)
+        )
     }
   }
 
@@ -222,6 +235,10 @@ struct IslandsView: View {
 
   private var searchQuery: String {
     searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private var isSearching: Bool {
+    !searchQuery.isEmpty
   }
 
   private var groupedIslands: [(atoll: Atoll, islands: [Island])] {
