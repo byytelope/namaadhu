@@ -63,13 +63,12 @@ private struct ContentViewPreview: View {
     ContentView()
       .environment(\.preferencesService, preferencesService)
       .environment(\.timerManager, timerManager)
-      .overlay(alignment: .bottomTrailing) {
+      .overlay(alignment: .top) {
         Button("Advance Prayer", systemImage: "forward.fill") {
           timerManager.advancePrayer()
         }
         .buttonStyle(.borderedProminent)
-        .padding(.trailing)
-        .padding(.bottom, 64)
+        .padding(.top, 50)
       }
   }
 }

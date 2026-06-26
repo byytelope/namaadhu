@@ -32,57 +32,59 @@ struct IslandsView: View {
   }
 
   var body: some View {
-    ScrollView {
-      LazyVStack(spacing: 12) {
-        ForEach(groupedIslands, id: \.atoll) { group in
-          atollDisclosureCard(group)
-        }
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-    }
-    .navigationTitle("Islands")
-    .toolbarTitleDisplayMode(.inline)
-    .searchable(
-      text: $searchText,
-      placement: .automatic,
-      prompt: "Search islands",
-    )
-    .overlay {
-      if !searchQuery.isEmpty && filteredIslands.isEmpty {
-        ContentUnavailableView.search(text: searchQuery)
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .cancellationAction) {
-        Button("Close", systemImage: "xmark") {
-          dismiss()
-        }
-      }
-
-      DefaultToolbarItem(kind: .search, placement: .bottomBar)
-      ToolbarSpacer(.flexible, placement: .bottomBar)
-      ToolbarItem(placement: .bottomBar) {
-        Button {
-          selectNearestIsland()
-        } label: {
-          if isLocating {
-            ProgressView()
-              .accessibilityLabel("Getting current location")
-          } else {
-            Label("Automatic", systemImage: "location.viewfinder")
+    ScrollViewReader { scrollProxy in
+      ScrollView {
+        LazyVStack(spacing: 12) {
+          ForEach(groupedIslands, id: \.atoll) { group in
+            atollDisclosureCard(group)
           }
         }
-        .disabled(isLocating || islands.isEmpty)
+        .safeAreaPadding()
       }
-    }
-    .task {
-      loadIslands()
-    }
-    .alert("Error", isPresented: isShowingError) {
-      Button("OK") { errorMessage = nil }
-    } message: {
-      Text(errorMessage ?? "")
+      .navigationTitle("Islands")
+      .toolbarTitleDisplayMode(.inline)
+      .searchable(
+        text: $searchText,
+        placement: .automatic,
+        prompt: "Search islands",
+      )
+      .overlay {
+        if !searchQuery.isEmpty && filteredIslands.isEmpty {
+          ContentUnavailableView.search(text: searchQuery)
+        }
+      }
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close", systemImage: "xmark") {
+            dismiss()
+          }
+        }
+
+        DefaultToolbarItem(kind: .search, placement: .bottomBar)
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+          Button {
+            selectNearestIsland()
+          } label: {
+            if isLocating {
+              ProgressView()
+                .accessibilityLabel("Getting current location")
+            } else {
+              Label("Automatic", systemImage: "location.viewfinder")
+            }
+          }
+          .disabled(isLocating || islands.isEmpty)
+        }
+      }
+      .task {
+        loadIslands()
+        await scrollToSelectedIsland(using: scrollProxy)
+      }
+      .alert("Error", isPresented: isShowingError) {
+        Button("OK") { errorMessage = nil }
+      } message: {
+        Text(errorMessage ?? "")
+      }
     }
   }
 
@@ -122,6 +124,7 @@ struct IslandsView: View {
         VStack(spacing: 0) {
           ForEach(group.islands) { island in
             islandButton(island)
+              .id(island.id)
 
             if island.id != group.islands.last?.id {
               Divider()
@@ -161,7 +164,7 @@ struct IslandsView: View {
         }
         .frame(width: 20, height: 20)
       }
-      .padding(.vertical, 10)
+      .padding(.vertical, 14)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -187,6 +190,17 @@ struct IslandsView: View {
       errorMessage = String(describing: decodingError)
     } catch {
       errorMessage = error.localizedDescription
+    }
+  }
+
+  private func scrollToSelectedIsland(using scrollProxy: ScrollViewProxy) async {
+    guard let selectedIsland else { return }
+
+    expandedAtoll = selectedIsland.atoll
+    await Task.yield()
+
+    withAnimation(.snappy) {
+      scrollProxy.scrollTo(selectedIsland.id, anchor: .center)
     }
   }
 

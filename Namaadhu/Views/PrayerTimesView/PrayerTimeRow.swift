@@ -1,18 +1,24 @@
 import SwiftUI
 
+private let prayerCardCornerRadius: CGFloat = 28
+
 struct PrayerTimeRow: View {
   var prayer: Prayer
   var date: Date
   var isCurrent: Bool = false
   var isUpcoming: Bool = false
 
-  @Environment(\.timerManager) private var timerManager
-
   @State private var hasAppeared = false
-  @State private var showsTimerContent = false
-  @State private var showsTimerLayout = false
+  @State private var timerPhase = TimerPhase.hidden
   @State private var timerTransitionTask: Task<Void, Never>?
-  @State private var countdownTextWidth: CGFloat?
+
+  private var showsTimerLayout: Bool {
+    timerPhase.showsLayout
+  }
+
+  private var showsTimerContent: Bool {
+    timerPhase.showsContent
+  }
 
   var body: some View {
     HStack(spacing: 24) {
@@ -40,13 +46,15 @@ struct PrayerTimeRow: View {
         .padding(.vertical, 8)
         .glassEffect(isCurrent ? .clear.interactive() : .identity)
 
-        countdown
-          .opacity(showsTimerContent ? 1 : 0)
-          .blur(radius: showsTimerContent ? 0 : 8)
-          .scaleEffect(showsTimerContent ? 1 : 0.96)
-          .frame(height: showsTimerLayout ? 29 : 0, alignment: .top)
-          .clipped()
-          .accessibilityHidden(!showsTimerLayout)
+        if timerPhase.rendersTimer {
+          CountdownCapsule()
+            .opacity(showsTimerContent ? 1 : 0)
+            .blur(radius: showsTimerContent ? 0 : 8)
+            .scaleEffect(showsTimerContent ? 1 : 0.96)
+            .frame(height: showsTimerLayout ? 29 : 0, alignment: .top)
+            .clipped()
+            .transition(.identity)
+        }
       }
       .offset(y: showsTimerLayout ? -6 : 0)
     }
@@ -58,50 +66,16 @@ struct PrayerTimeRow: View {
     .frame(height: showsTimerLayout ? 116 : 85)
     .animation(.smooth(duration: 0.42), value: showsTimerLayout)
     .background {
-      RoundedRectangle(cornerRadius: 28, style: .continuous)
-        .fill(backgroundGradient)
-        .overlay {
-          PrayerAtmosphericDetails(prayer: prayer)
-            .clipShape(
-              RoundedRectangle(cornerRadius: 28, style: .continuous)
-            )
-        }
-        .overlay {
-          RoundedRectangle(cornerRadius: 28, style: .continuous)
-            .fill(
-              LinearGradient(
-                colors: [
-                  .black.opacity(0.08),
-                  .clear,
-                  .white.opacity(0.10),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-              )
-            )
-        }
-        .shadow(
-          color: gradientShadowColor.opacity(0.18),
-          radius: 12,
-          y: 6
-        )
+      PrayerCardBackground(prayer: prayer)
     }
-    .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    .contentShape(
+      RoundedRectangle(
+        cornerRadius: prayerCardCornerRadius,
+        style: .continuous
+      )
+    )
     .accessibilityElement(children: .combine)
-    .listRowInsets(EdgeInsets())
-    .listRowSeparator(.hidden)
-    .listRowBackground(Color.clear)
-    .onAppear {
-      guard !hasAppeared else { return }
-
-      var transaction = Transaction()
-      transaction.disablesAnimations = true
-      withTransaction(transaction) {
-        showsTimerLayout = isUpcoming
-        showsTimerContent = isUpcoming
-        hasAppeared = true
-      }
-    }
+    .onAppear(perform: appear)
     .onChange(of: isUpcoming) { _, newValue in
       animateTimer(isVisible: newValue)
     }
@@ -110,10 +84,56 @@ struct PrayerTimeRow: View {
     }
   }
 
-  private var countdown: some View {
+  private func appear() {
+    if !hasAppeared {
+      var transaction = Transaction()
+      transaction.disablesAnimations = true
+      withTransaction(transaction) {
+        timerPhase = isUpcoming ? .contentVisible : .hidden
+        hasAppeared = true
+      }
+    }
+  }
+
+  private func animateTimer(isVisible: Bool) {
+    guard hasAppeared else { return }
+
+    timerTransitionTask?.cancel()
+    timerTransitionTask = Task { @MainActor in
+      if isVisible {
+        withAnimation(.smooth(duration: 0.42)) {
+          timerPhase = .layoutVisible
+        }
+
+        try? await Task.sleep(for: .milliseconds(320))
+        guard !Task.isCancelled else { return }
+
+        withAnimation(.easeOut(duration: 0.28)) {
+          timerPhase = .contentVisible
+        }
+      } else {
+        withAnimation(.smooth(duration: 0.42)) {
+          timerPhase = .collapsing
+        }
+
+        try? await Task.sleep(for: .milliseconds(420))
+        guard !Task.isCancelled else { return }
+
+        timerPhase = .hidden
+      }
+    }
+  }
+}
+
+private struct CountdownCapsule: View {
+  @Environment(\.timerManager) private var timerManager
+
+  @State private var countdownTextWidth: CGFloat?
+
+  var body: some View {
     let formattedTime = timerManager.timeRemaining.formattedTime()
 
-    return HStack(spacing: 6) {
+    HStack(spacing: 6) {
       Image(systemName: "arrow.right.circle")
       countdownText(formattedTime)
         .contentTransition(.numericText(countsDown: true))
@@ -149,35 +169,48 @@ struct PrayerTimeRow: View {
       .font(.system(size: 16, weight: .semibold, design: .rounded))
       .monospacedDigit()
   }
+}
 
-  private func animateTimer(isVisible: Bool) {
-    guard hasAppeared else { return }
+private struct PrayerCardBackground: View {
+  let prayer: Prayer
 
-    timerTransitionTask?.cancel()
-    timerTransitionTask = Task { @MainActor in
-      if isVisible {
-        showsTimerContent = false
-
-        withAnimation(.smooth(duration: 0.42)) {
-          showsTimerLayout = true
-        }
-
-        try? await Task.sleep(for: .milliseconds(320))
-        guard !Task.isCancelled else { return }
-
-        withAnimation(.easeOut(duration: 0.28)) {
-          showsTimerContent = true
-        }
-      } else {
-        withAnimation(.easeIn(duration: 0.24)) {
-          showsTimerContent = false
-        }
-
-        withAnimation(.smooth(duration: 0.42)) {
-          showsTimerLayout = false
-        }
-      }
+  var body: some View {
+    RoundedRectangle(
+      cornerRadius: prayerCardCornerRadius,
+      style: .continuous
+    )
+    .fill(backgroundGradient)
+    .overlay {
+      PrayerAtmosphericDetails(prayer: prayer)
+        .clipShape(
+          RoundedRectangle(
+            cornerRadius: prayerCardCornerRadius,
+            style: .continuous
+          )
+        )
     }
+    .overlay {
+      RoundedRectangle(
+        cornerRadius: prayerCardCornerRadius,
+        style: .continuous
+      )
+      .fill(
+        LinearGradient(
+          colors: [
+            .black.opacity(0.08),
+            .clear,
+            .white.opacity(0.10),
+          ],
+          startPoint: .top,
+          endPoint: .bottom
+        )
+      )
+    }
+    .shadow(
+      color: gradientShadowColor.opacity(0.18),
+      radius: 12,
+      y: 6
+    )
   }
 
   private var backgroundGradient: LinearGradient {
@@ -195,7 +228,6 @@ struct PrayerTimeRow: View {
         .init(color: Color(red: 0.07, green: 0.12, blue: 0.32), location: 0),
         .init(color: Color(red: 0.20, green: 0.24, blue: 0.48), location: 0.50),
         .init(color: Color(red: 0.47, green: 0.36, blue: 0.52), location: 1),
-//        .init(color: Color(red: 0.67, green: 0.50, blue: 0.53), location: 1),
       ]
     case .sunrise:
       [
@@ -223,7 +255,6 @@ struct PrayerTimeRow: View {
         .init(color: Color(red: 0.08, green: 0.10, blue: 0.28), location: 0),
         .init(color: Color(red: 0.25, green: 0.20, blue: 0.43), location: 0.50),
         .init(color: Color(red: 0.51, green: 0.31, blue: 0.45), location: 1),
-//        .init(color: Color(red: 0.70, green: 0.47, blue: 0.47), location: 1),
       ]
     case .isha:
       [
@@ -237,5 +268,29 @@ struct PrayerTimeRow: View {
 
   private var gradientShadowColor: Color {
     gradientStops.first?.color ?? .black
+  }
+}
+
+private enum TimerPhase {
+  case hidden
+  case layoutVisible
+  case contentVisible
+  case collapsing
+
+  var showsLayout: Bool {
+    switch self {
+    case .layoutVisible, .contentVisible:
+      return true
+    case .hidden, .collapsing:
+      return false
+    }
+  }
+
+  var showsContent: Bool {
+    self == .contentVisible
+  }
+
+  var rendersTimer: Bool {
+    self != .hidden
   }
 }

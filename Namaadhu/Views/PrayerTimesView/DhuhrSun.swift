@@ -1,12 +1,19 @@
 import SwiftUI
 
 struct DhuhrSun: View {
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @State private var breathes = false
+
+  private let rayAngles = [0.0, 45.0, 90.0, 135.0]
+
   var body: some View {
     GeometryReader { proxy in
       let sunPosition = CGPoint(
         x: proxy.size.width * 0.72,
         y: proxy.size.height * 0.18
       )
+      let motionEnabled = breathes && !reduceMotion
+      let rayRotation = reduceMotion ? 0 : (breathes ? 1.8 : -1.1)
 
       ZStack {
         Circle()
@@ -36,9 +43,11 @@ struct DhuhrSun: View {
           )
           .frame(width: 144, height: 144)
           .blur(radius: 5)
+          .scaleEffect(motionEnabled ? 1.03 : 0.98)
+          .opacity(motionEnabled ? 1 : 0.86)
           .position(sunPosition)
 
-        ForEach([0.0, 45.0, 90.0, 135.0], id: \.self) { angle in
+        ForEach(rayAngles, id: \.self) { angle in
           Capsule()
             .fill(
               LinearGradient(
@@ -60,7 +69,8 @@ struct DhuhrSun: View {
               height: angle == 0 || angle == 90 ? 1.4 : 0.8
             )
             .blur(radius: 0.7)
-            .rotationEffect(.degrees(angle))
+            .opacity(motionEnabled ? 1 : 0.68)
+            .rotationEffect(.degrees(angle + rayRotation))
             .position(sunPosition)
         }
 
@@ -94,6 +104,8 @@ struct DhuhrSun: View {
           )
           .frame(width: 38, height: 38)
           .shadow(color: .white.opacity(0.9), radius: 8)
+          .scaleEffect(motionEnabled ? 1.015 : 0.99)
+          .opacity(motionEnabled ? 1 : 0.94)
           .position(sunPosition)
 
         flareArtifact(
@@ -104,6 +116,11 @@ struct DhuhrSun: View {
           y: 0.52,
           in: proxy.size
         )
+        .opacity(motionEnabled ? 1 : 0.72)
+        .offset(
+          x: motionEnabled ? -1.2 : 0.5,
+          y: motionEnabled ? 0.8 : -0.4
+        )
 
         flareArtifact(
           diameter: 9,
@@ -112,6 +129,11 @@ struct DhuhrSun: View {
           x: 0.37,
           y: 0.68,
           in: proxy.size
+        )
+        .opacity(motionEnabled ? 1 : 0.68)
+        .offset(
+          x: motionEnabled ? -0.8 : 0.4,
+          y: motionEnabled ? 0.5 : -0.3
         )
 
         flareArtifact(
@@ -122,13 +144,37 @@ struct DhuhrSun: View {
           y: 0.78,
           in: proxy.size
         )
+        .opacity(motionEnabled ? 1 : 0.74)
+        .offset(
+          x: motionEnabled ? -0.5 : 0.3,
+          y: motionEnabled ? 0.3 : -0.2
+        )
       }
       .blendMode(.plusLighter)
+    }
+    .onAppear(perform: updateMotion)
+    .onChange(of: reduceMotion) {
+      updateMotion()
     }
     .drawingGroup(opaque: false, colorMode: .extendedLinear)
     .allowedDynamicRange(.constrainedHigh)
     .allowsHitTesting(false)
     .accessibilityHidden(true)
+  }
+
+  private func updateMotion() {
+    if reduceMotion {
+      var transaction = Transaction()
+      transaction.disablesAnimations = true
+
+      withTransaction(transaction) {
+        breathes = false
+      }
+    } else {
+      withAnimation(.easeInOut(duration: 7.5).repeatForever(autoreverses: true)) {
+        breathes = true
+      }
+    }
   }
 
   private func flareArtifact(

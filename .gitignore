@@ -15,7 +15,6 @@ DerivedData/
 # Swift Package Manager
 .build/
 Packages/
-Package.resolved
 
 # Carthage
 Carthage/Build/

@@ -14,35 +14,25 @@ struct PrayerTimesList: View {
 
   var body: some View {
     ScrollView {
-      VStack(spacing: 6) {
-        DatePicker(
-          "Select date",
-          selection: $selectedDate,
-          displayedComponents: .date
-        )
-        .datePickerStyle(.compact)
-        .labelsHidden()
-        .frame(maxWidth: .infinity, alignment: .leading)
+      if let times = prayerTimes {
+        let orderedDates = times.orderedDates()
 
-        if let times = prayerTimes {
-          ForEach(times.orderedDates(), id: \.0) { prayer, date in
-            PrayerTimeRow(
-              prayer: prayer,
-              date: date,
-              isCurrent: isToday
-                && prayer == timerManager.currentPrayer,
-              isUpcoming: isToday
-                && prayer == timerManager.upcomingPrayer,
-            )
-          }
+        ForEach(orderedDates, id: \.0) { item in
+          let prayer = item.0
+          let date = item.1
+
+          PrayerTimeRow(
+            prayer: prayer,
+            date: date,
+            isCurrent: isToday
+              && prayer == timerManager.currentPrayer,
+            isUpcoming: isToday
+              && prayer == timerManager.upcomingPrayer
+          )
         }
       }
-      .animation(
-        .smooth(duration: 0.42),
-        value: timerManager.upcomingPrayer
-      )
     }
-    .safeAreaPadding(.horizontal)
+    .safeAreaPadding()
     .onDisappear {
       timerManager.setTickingEnabled(false)
     }

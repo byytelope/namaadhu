@@ -34,6 +34,18 @@ struct PrayerTimesView: View {
     .navigationSubtitle(selectedIsland.name)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar(content: toolbarContent)
+    .safeAreaBar(
+      edge: .bottom,
+      content: {
+        DatePicker(
+          "Select date",
+          selection: $selectedDate,
+          displayedComponents: .date
+        )
+        .datePickerStyle(.compact)
+        .labelsHidden()
+      }
+    )
     .onChange(of: selectedDate) { oldDate, newDate in
       if oldDate != newDate {
         loadPrayerTimes()
