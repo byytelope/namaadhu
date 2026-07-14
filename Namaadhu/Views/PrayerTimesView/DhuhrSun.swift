@@ -1,8 +1,14 @@
+import CoreMotion
 import SwiftUI
 
 struct DhuhrSun: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
   @State private var breathes = false
+  @State private var gyroFlareOffset = CGSize.zero
+  @State private var gyroscopeBaselineRoll: Double?
+  @State private var gyroscopeBaselinePitch: Double?
+  @State private var motionManager = CMMotionManager()
 
   private let rayAngles = [0.0, 45.0, 90.0, 135.0]
 
@@ -118,8 +124,8 @@ struct DhuhrSun: View {
         )
         .opacity(motionEnabled ? 1 : 0.72)
         .offset(
-          x: motionEnabled ? -1.2 : 0.5,
-          y: motionEnabled ? 0.8 : -0.4
+          x: (motionEnabled ? -1.2 : 0.5) + gyroFlareOffset.width,
+          y: (motionEnabled ? 0.8 : -0.4) + gyroFlareOffset.height
         )
 
         flareArtifact(
@@ -132,8 +138,8 @@ struct DhuhrSun: View {
         )
         .opacity(motionEnabled ? 1 : 0.68)
         .offset(
-          x: motionEnabled ? -0.8 : 0.4,
-          y: motionEnabled ? 0.5 : -0.3
+          x: (motionEnabled ? -0.8 : 0.4) + (gyroFlareOffset.width * 0.65),
+          y: (motionEnabled ? 0.5 : -0.3) + (gyroFlareOffset.height * 0.65)
         )
 
         flareArtifact(
@@ -146,16 +152,24 @@ struct DhuhrSun: View {
         )
         .opacity(motionEnabled ? 1 : 0.74)
         .offset(
-          x: motionEnabled ? -0.5 : 0.3,
-          y: motionEnabled ? 0.3 : -0.2
+          x: (motionEnabled ? -0.5 : 0.3) + (gyroFlareOffset.width * 0.35),
+          y: (motionEnabled ? 0.3 : -0.2) + (gyroFlareOffset.height * 0.35)
         )
       }
       .blendMode(.plusLighter)
     }
-    .onAppear(perform: updateMotion)
+    .onAppear {
+      updateMotion()
+      updateGyroscope()
+    }
     .onChange(of: reduceMotion) {
       updateMotion()
+      updateGyroscope()
     }
+    .onChange(of: scenePhase) {
+      updateGyroscope()
+    }
+    .onDisappear(perform: stopGyroscope)
     .drawingGroup(opaque: false, colorMode: .extendedLinear)
     .allowedDynamicRange(.constrainedHigh)
     .allowsHitTesting(false)
@@ -174,6 +188,66 @@ struct DhuhrSun: View {
       withAnimation(.easeInOut(duration: 7.5).repeatForever(autoreverses: true)) {
         breathes = true
       }
+    }
+  }
+
+  private func updateGyroscope() {
+    stopGyroscope()
+
+    guard
+      !reduceMotion,
+      scenePhase == .active,
+      motionManager.isGyroAvailable,
+      motionManager.isDeviceMotionAvailable
+    else {
+      return
+    }
+
+    motionManager.deviceMotionUpdateInterval = 1.0 / 20.0
+    motionManager.startDeviceMotionUpdates(to: .main) { motion, _ in
+      guard let motion else { return }
+      guard
+        let gyroscopeBaselineRoll,
+        let gyroscopeBaselinePitch
+      else {
+        gyroscopeBaselineRoll = motion.attitude.roll
+        gyroscopeBaselinePitch = motion.attitude.pitch
+        return
+      }
+
+      let relativeRoll = motion.attitude.roll - gyroscopeBaselineRoll
+      let relativePitch = motion.attitude.pitch - gyroscopeBaselinePitch
+      let targetOffset = CGSize(
+        width: CGFloat(min(max(relativeRoll * 18, -10), 10)),
+        height: CGFloat(min(max(relativePitch * 14, -7), 7))
+      )
+      let smoothedOffset = CGSize(
+        width: gyroFlareOffset.width + ((targetOffset.width - gyroFlareOffset.width) * 0.2),
+        height: gyroFlareOffset.height
+          + ((targetOffset.height - gyroFlareOffset.height) * 0.2)
+      )
+
+      guard
+        abs(smoothedOffset.width - gyroFlareOffset.width) > 0.01
+          || abs(smoothedOffset.height - gyroFlareOffset.height) > 0.01
+      else {
+        return
+      }
+
+      gyroFlareOffset = smoothedOffset
+    }
+  }
+
+  private func stopGyroscope() {
+    motionManager.stopDeviceMotionUpdates()
+
+    var transaction = Transaction()
+    transaction.disablesAnimations = true
+
+    withTransaction(transaction) {
+      gyroFlareOffset = .zero
+      gyroscopeBaselineRoll = nil
+      gyroscopeBaselinePitch = nil
     }
   }
 

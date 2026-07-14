@@ -61,7 +61,6 @@ struct PrayerTimeRow: View {
             .blur(radius: showsTimerContent ? 0 : 8)
             .scaleEffect(showsTimerContent ? 1 : 0.96)
             .frame(height: showsTimerLayout ? 29 : 0, alignment: .top)
-            .clipped()
             .transition(.identity)
         }
       }

@@ -7,13 +7,15 @@ struct PrayerTimesView: View {
   var onSelectLocation: () -> Void = {}
 
   @Environment(\.databaseService) private var db
+  @Environment(\.preferencesService) private var preferences
+  @Environment(\.scenePhase) private var scenePhase
 
   @State private var selectedDate = Date.now
   @State private var prayerTimes: PrayerTimes?
   @State private var tomorrowPrayerTimes: PrayerTimes?
   @State private var errorMessage: String?
   @State private var isDatePickerPresented = false
-  @State private var lastDateButtonLongPressDate: Date?
+  @State private var isNotificationsPresented = false
 
   private var isShowingError: Binding<Bool> {
     Binding(
@@ -43,9 +45,23 @@ struct PrayerTimesView: View {
     }
     .onChange(of: selectedIsland, initial: true) { _, _ in
       loadPrayerTimes()
+      updatePrayerNotificationSchedule()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active {
+        updatePrayerNotificationSchedule()
+      }
     }
     .sheet(isPresented: $isDatePickerPresented) {
       datePickerSheet
+    }
+    .sheet(isPresented: $isNotificationsPresented) {
+      NavigationStack {
+        PrayerNotificationsView(selectedIsland: selectedIsland)
+      }
+      .navigationTransition(
+        .zoom(sourceID: "notifications", in: islandTransition)
+      )
     }
     .alert("Error", isPresented: isShowingError) {
       Button("OK") { errorMessage = nil }
@@ -56,6 +72,17 @@ struct PrayerTimesView: View {
 
   @ToolbarContentBuilder
   private func toolbarContent() -> some ToolbarContent {
+    ToolbarItem(placement: .topBarTrailing) {
+      Button("Prayer Notifications", systemImage: "bell") {
+        isNotificationsPresented = true
+      }
+      .matchedTransitionSource(
+        id: "notifications",
+        in: islandTransition
+      )
+
+    }
+
     ToolbarItem(placement: .bottomBar) {
       HStack(spacing: 8) {
         Button("Previous day", systemImage: "chevron.left") {
@@ -75,46 +102,34 @@ struct PrayerTimesView: View {
     ToolbarSpacer(.flexible, placement: .bottomBar)
 
     ToolbarItem(placement: .bottomBar) {
-      Button("Location", systemImage: "location") {
-        onSelectLocation()
+      HStack {
+        Button("Location", systemImage: "location") {
+          onSelectLocation()
+        }
+        .matchedTransitionSource(
+          id: "islands",
+          in: islandTransition
+        )
       }
-      .matchedTransitionSource(
-        id: "islands",
-        in: islandTransition
-      )
     }
-
   }
 
   private var datePickerButton: some View {
-    Button {
-      if shouldSuppressDatePickerTap {
-        lastDateButtonLongPressDate = nil
-      } else {
-        isDatePickerPresented = true
-      }
-    } label: {
-      Text(
-        isSelectedDateToday
-          ? "Today"
-          : selectedDate.formatted(date: .abbreviated, time: .omitted)
-      )
-      .font(.body)
-      .lineLimit(1)
-      .fixedSize(horizontal: true, vertical: false)
-      .contentTransition(.numericText(value: selectedDateNumericValue))
-      .animation(.snappy, value: selectedDateNumericValue)
-    }
-    .simultaneousGesture(
-      LongPressGesture()
-        .onChanged { _ in
-          lastDateButtonLongPressDate = .now
-        }
-        .onEnded { _ in
-          lastDateButtonLongPressDate = .now
-          resetSelectedDateToToday()
-        }
+    Text(
+      isSelectedDateToday
+        ? "Today"
+        : selectedDate.formatted(date: .abbreviated, time: .omitted)
     )
+    .font(.body)
+    .lineLimit(1)
+    .fixedSize(horizontal: true, vertical: false)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 8)
+    .contentShape(.rect)
+    .contentTransition(.numericText(value: selectedDateNumericValue))
+    .animation(.snappy, value: selectedDateNumericValue)
+    .gesture(datePickerGesture)
+    .accessibilityAddTraits(.isButton)
     .accessibilityLabel("Select date")
     .accessibilityAction {
       isDatePickerPresented = true
@@ -124,10 +139,17 @@ struct PrayerTimesView: View {
     }
   }
 
-  private var shouldSuppressDatePickerTap: Bool {
-    guard let lastDateButtonLongPressDate else { return false }
-
-    return Date.now.timeIntervalSince(lastDateButtonLongPressDate) < 0.5
+  private var datePickerGesture: some Gesture {
+    LongPressGesture()
+      .exclusively(before: TapGesture())
+      .onEnded { value in
+        switch value {
+        case .first:
+          resetSelectedDateToToday()
+        case .second:
+          isDatePickerPresented = true
+        }
+      }
   }
 
   private var datePickerSheet: some View {
@@ -205,6 +227,21 @@ struct PrayerTimesView: View {
       errorMessage = String(describing: decodingError)
     } catch {
       errorMessage = error.localizedDescription
+    }
+  }
+
+  private func updatePrayerNotificationSchedule() {
+    Task {
+      do {
+        _ = try await PrayerNotificationScheduler.updateSchedule(
+          for: selectedIsland,
+          enabledPrayers: preferences.notificationEnabledPrayers,
+          database: db,
+          requestsAuthorization: false
+        )
+      } catch {
+        print("PrayerTimesView: failed to schedule notifications:", error)
+      }
     }
   }
 }

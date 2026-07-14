@@ -5,6 +5,7 @@ import WidgetKit
 class PreferencesService {
   private enum Storage {
     static let selectedIslandDataKey = "selectedIslandData"
+    static let notificationPrayerIdentifiersKey = "notificationPrayerIdentifiers"
 
     static var selectedIslandData: Data? {
       get {
@@ -18,6 +19,22 @@ class PreferencesService {
         } else {
           userDefaults.removeObject(forKey: selectedIslandDataKey)
         }
+      }
+    }
+
+    static var notificationPrayerIdentifiers: Set<String> {
+      get {
+        Set(
+          AppGroup.userDefaults?.stringArray(
+            forKey: notificationPrayerIdentifiersKey
+          ) ?? []
+        )
+      }
+      set {
+        AppGroup.userDefaults?.set(
+          newValue.sorted(),
+          forKey: notificationPrayerIdentifiersKey
+        )
       }
     }
   }
@@ -44,6 +61,14 @@ class PreferencesService {
     )
   }
 
+  private(set) var notificationEnabledPrayers: Set<Prayer> {
+    didSet {
+      Storage.notificationPrayerIdentifiers = Set(
+        notificationEnabledPrayers.map(\.rawValue)
+      )
+    }
+  }
+
   init() {
     selectedIsland = {
       guard let data = Storage.selectedIslandData else { return nil }
@@ -55,6 +80,23 @@ class PreferencesService {
         return nil
       }
     }()
+
+    notificationEnabledPrayers = Set(
+      Storage.notificationPrayerIdentifiers.compactMap(Prayer.init(rawValue:))
+    )
+  }
+
+  func notificationBinding(for prayer: Prayer) -> Binding<Bool> {
+    Binding(
+      get: { self.notificationEnabledPrayers.contains(prayer) },
+      set: { isEnabled in
+        if isEnabled {
+          self.notificationEnabledPrayers.insert(prayer)
+        } else {
+          self.notificationEnabledPrayers.remove(prayer)
+        }
+      }
+    )
   }
 }
 

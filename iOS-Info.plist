@@ -6,5 +6,7 @@
 	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>Let the app set timers for upcoming prayers.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Namaadhu uses device motion to subtly animate sunlight in the Dhuhr prayer card.</string>
 </dict>
 </plist>
