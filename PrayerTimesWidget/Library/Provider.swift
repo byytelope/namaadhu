@@ -69,9 +69,7 @@ struct Provider: TimelineProvider {
 
   private func loadSelectedIsland() -> Island? {
     guard
-      let data = UserDefaults(suiteName: "group.me.shadhaan.Namaadhu")!.data(
-        forKey: "selectedIslandData"
-      )
+      let data = AppGroup.userDefaults?.data(forKey: "selectedIslandData")
     else {
       return nil
     }

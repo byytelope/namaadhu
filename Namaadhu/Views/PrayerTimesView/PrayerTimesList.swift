@@ -3,7 +3,7 @@ import SwiftUI
 struct PrayerTimesList: View {
   var prayerTimes: PrayerTimes?
   var tomorrowPrayerTimes: PrayerTimes?
-  @Binding var selectedDate: Date
+  var selectedDate: Date
 
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.timerManager) private var timerManager
@@ -15,19 +15,14 @@ struct PrayerTimesList: View {
   var body: some View {
     ScrollView {
       if let times = prayerTimes {
-        let orderedDates = times.orderedDates()
-
-        ForEach(orderedDates, id: \.0) { item in
-          let prayer = item.0
-          let date = item.1
-
+        ForEach(times.orderedDates()) { occurrence in
           PrayerTimeRow(
-            prayer: prayer,
-            date: date,
+            prayer: occurrence.prayer,
+            date: occurrence.date,
             isCurrent: isToday
-              && prayer == timerManager.currentPrayer,
+              && occurrence.prayer == timerManager.currentPrayer,
             isUpcoming: isToday
-              && prayer == timerManager.upcomingPrayer
+              && occurrence.prayer == timerManager.upcomingPrayer
           )
         }
       }

@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppGroupIdentifier</key>
+	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>Let the app set timers for upcoming prayers.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Use your location to select the nearest island for prayer times.</string>
 </dict>
 </plist>

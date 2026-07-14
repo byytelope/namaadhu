@@ -27,8 +27,17 @@ struct PrayerTimeRow: View {
           .frame(width: 24, height: 24)
           .font(.system(size: 22, weight: .semibold, design: .rounded))
 
-        Text(prayer.displayName)
-          .font(.system(size: 24, weight: .semibold, design: .rounded))
+        VStack(alignment: .leading, spacing: 2) {
+          Text(prayer.displayName)
+            .font(.system(size: 24, weight: .semibold, design: .rounded))
+
+          if let sunnahSummary = prayer.sunnahSummary {
+            Text(sunnahSummary)
+              .font(.system(size: 13, weight: .medium, design: .rounded))
+              .foregroundStyle(.white.opacity(0.72))
+              .lineLimit(1)
+          }
+        }
       }
 
       Spacer(minLength: 16)
@@ -44,7 +53,7 @@ struct PrayerTimeRow: View {
         .font(.system(size: 24, weight: .semibold, design: .rounded))
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .glassEffect(isCurrent ? .clear.interactive() : .identity)
+        .glassEffect(isCurrent ? .clear : .identity)
 
         if timerPhase.rendersTimer {
           CountdownCapsule()
@@ -121,6 +130,25 @@ struct PrayerTimeRow: View {
 
         timerPhase = .hidden
       }
+    }
+  }
+}
+
+private extension Prayer {
+  var sunnahSummary: String? {
+    switch self {
+    case .fajr:
+      "2 before"
+    case .sunrise:
+      nil
+    case .dhuhr:
+      "4 before · 2 after"
+    case .asr:
+      "4 before"
+    case .maghrib:
+      "2 after"
+    case .isha:
+      "2 after · Witr 3"
     }
   }
 }

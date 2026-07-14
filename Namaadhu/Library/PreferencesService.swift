@@ -3,20 +3,29 @@ import WidgetKit
 
 @Observable
 class PreferencesService {
-  private class Storage {
-    @AppStorage(
-      "selectedIslandData",
-      store: UserDefaults(suiteName: "group.me.shadhaan.Namaadhu")
-    )
-    var selectedIslandData: Data?
-  }
+  private enum Storage {
+    static let selectedIslandDataKey = "selectedIslandData"
 
-  private let storage = Storage()
+    static var selectedIslandData: Data? {
+      get {
+        AppGroup.userDefaults?.data(forKey: selectedIslandDataKey)
+      }
+      set {
+        guard let userDefaults = AppGroup.userDefaults else { return }
+
+        if let newValue {
+          userDefaults.set(newValue, forKey: selectedIslandDataKey)
+        } else {
+          userDefaults.removeObject(forKey: selectedIslandDataKey)
+        }
+      }
+    }
+  }
 
   var selectedIsland: Island? {
     didSet {
       do {
-        storage.selectedIslandData = try selectedIsland.map {
+        Storage.selectedIslandData = try selectedIsland.map {
           try JSONEncoder().encode($0)
         }
         WidgetCenter.shared.reloadTimelines(ofKind: "PrayerTimesWidget")
@@ -37,7 +46,7 @@ class PreferencesService {
 
   init() {
     selectedIsland = {
-      guard let data = storage.selectedIslandData else { return nil }
+      guard let data = Storage.selectedIslandData else { return nil }
       do {
         return try JSONDecoder()
           .decode(Island.self, from: data)

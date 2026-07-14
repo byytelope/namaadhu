@@ -47,32 +47,30 @@ struct SystemMediumView: View {
         Spacer()
 
         HStack(spacing: 4) {
-          ForEach(prayerTimes.orderedDates(), id: \.0) {
-            prayer,
-            date in
+          ForEach(prayerTimes.orderedDates()) { occurrence in
             VStack(spacing: 4) {
-              Text(prayer.displayName)
+              Text(occurrence.prayer.displayName)
                 .font(.caption)
                 .bold()
                 .foregroundStyle(
-                  current == prayer
+                  current == occurrence.prayer
                     ? .accent.mix(with: .cream, by: 0.9)
                     : .accent.mix(with: .secondary, by: 0.5)
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-              Image(systemName: prayer.sfSymbol)
+              Image(systemName: occurrence.prayer.sfSymbol)
                 .font(.subheadline)
                 .foregroundStyle(
-                  current == prayer
+                  current == occurrence.prayer
                     ? .cream
                     : .accent.mix(with: .secondary, by: 0.3)
                 )
                 .padding(.vertical, 3)
 
               Text(
-                date
+                occurrence.date
                   .formatted(
                     .dateTime
                       .hour(.twoDigits(amPM: .omitted))
@@ -82,7 +80,7 @@ struct SystemMediumView: View {
               .font(.caption)
               .bold()
               .foregroundStyle(
-                current == prayer
+                current == occurrence.prayer
                   ? .accent.mix(with: .cream, by: 0.9)
                   : .accent.mix(with: .secondary, by: 0.5)
               )
@@ -95,7 +93,7 @@ struct SystemMediumView: View {
             .background(
               ConcentricRectangle()
                 .fill(
-                  current == prayer
+                  current == occurrence.prayer
                     ? .accent.mix(with: .secondary, by: 0.5).opacity(0.5)
                     : .accent.mix(with: .secondary, by: 0.5).opacity(0.1)
                 )

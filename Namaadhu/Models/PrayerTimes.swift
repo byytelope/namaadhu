@@ -5,7 +5,7 @@ enum Prayer: String, CaseIterable, Identifiable, Codable, Hashable, Sendable {
 
   var id: String { rawValue }
 
-  var displayName: String {
+  var displayName: LocalizedStringResource {
     switch self {
     case .fajr: return "Fajr"
     case .sunrise: return "Sunrise"
@@ -26,6 +26,13 @@ enum Prayer: String, CaseIterable, Identifiable, Codable, Hashable, Sendable {
     case .isha: return "moon.stars"
     }
   }
+}
+
+struct PrayerTimeOccurrence: Identifiable, Sendable, Equatable {
+  let prayer: Prayer
+  let date: Date
+
+  var id: Prayer { prayer }
 }
 
 struct PrayerTimes: Sendable, Equatable {
@@ -90,12 +97,14 @@ struct PrayerTimes: Sendable, Equatable {
     )
   }
 
-  func orderedDates(calendar: Calendar = .current) -> [(Prayer, Date)] {
+  func orderedDates(calendar: Calendar = .current) -> [PrayerTimeOccurrence] {
     let startOfDay = calendar.startOfDay(for: date)
 
     return Prayer.allCases.compactMap { prayer in
       calendar.date(byAdding: self[prayer], to: startOfDay)
-        .map { (prayer, $0) }
+        .map {
+          PrayerTimeOccurrence(prayer: prayer, date: $0)
+        }
     }
   }
 }
@@ -118,7 +127,7 @@ enum PrayerSchedule {
     }
 
     guard
-      let upcomingIndex = occurrences.firstIndex(where: { $0.1 > date })
+      let upcomingIndex = occurrences.firstIndex(where: { $0.date > date })
     else {
       return nil
     }
@@ -126,13 +135,13 @@ enum PrayerSchedule {
     let upcoming = occurrences[upcomingIndex]
     let currentPrayer =
       upcomingIndex > 0
-      ? occurrences[upcomingIndex - 1].0
+      ? occurrences[upcomingIndex - 1].prayer
       : .isha
 
     return PrayerState(
       currentPrayer: currentPrayer,
-      upcomingPrayer: upcoming.0,
-      upcomingPrayerDate: upcoming.1
+      upcomingPrayer: upcoming.prayer,
+      upcomingPrayerDate: upcoming.date
     )
   }
 }

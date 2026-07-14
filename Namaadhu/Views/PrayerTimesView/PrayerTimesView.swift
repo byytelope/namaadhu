@@ -12,6 +12,8 @@ struct PrayerTimesView: View {
   @State private var prayerTimes: PrayerTimes?
   @State private var tomorrowPrayerTimes: PrayerTimes?
   @State private var errorMessage: String?
+  @State private var isDatePickerPresented = false
+  @State private var lastDateButtonLongPressDate: Date?
 
   private var isShowingError: Binding<Bool> {
     Binding(
@@ -28,24 +30,12 @@ struct PrayerTimesView: View {
     PrayerTimesList(
       prayerTimes: prayerTimes,
       tomorrowPrayerTimes: tomorrowPrayerTimes,
-      selectedDate: $selectedDate
+      selectedDate: selectedDate
     )
     .navigationTitle("Namaadhu")
     .navigationSubtitle(selectedIsland.name)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar(content: toolbarContent)
-    .safeAreaBar(
-      edge: .bottom,
-      content: {
-        DatePicker(
-          "Select date",
-          selection: $selectedDate,
-          displayedComponents: .date
-        )
-        .datePickerStyle(.compact)
-        .labelsHidden()
-      }
-    )
     .onChange(of: selectedDate) { oldDate, newDate in
       if oldDate != newDate {
         loadPrayerTimes()
@@ -53,6 +43,9 @@ struct PrayerTimesView: View {
     }
     .onChange(of: selectedIsland, initial: true) { _, _ in
       loadPrayerTimes()
+    }
+    .sheet(isPresented: $isDatePickerPresented) {
+      datePickerSheet
     }
     .alert("Error", isPresented: isShowingError) {
       Button("OK") { errorMessage = nil }
@@ -64,6 +57,24 @@ struct PrayerTimesView: View {
   @ToolbarContentBuilder
   private func toolbarContent() -> some ToolbarContent {
     ToolbarItem(placement: .bottomBar) {
+      HStack(spacing: 8) {
+        Button("Previous day", systemImage: "chevron.left") {
+          changeSelectedDate(byAddingDays: -1)
+        }
+        .labelStyle(.iconOnly)
+
+        datePickerButton
+
+        Button("Next day", systemImage: "chevron.right") {
+          changeSelectedDate(byAddingDays: 1)
+        }
+        .labelStyle(.iconOnly)
+      }
+    }
+
+    ToolbarSpacer(.flexible, placement: .bottomBar)
+
+    ToolbarItem(placement: .bottomBar) {
       Button("Location", systemImage: "location") {
         onSelectLocation()
       }
@@ -71,6 +82,96 @@ struct PrayerTimesView: View {
         id: "islands",
         in: islandTransition
       )
+    }
+
+  }
+
+  private var datePickerButton: some View {
+    Button {
+      if shouldSuppressDatePickerTap {
+        lastDateButtonLongPressDate = nil
+      } else {
+        isDatePickerPresented = true
+      }
+    } label: {
+      Text(
+        isSelectedDateToday
+          ? "Today"
+          : selectedDate.formatted(date: .abbreviated, time: .omitted)
+      )
+      .font(.body)
+      .lineLimit(1)
+      .fixedSize(horizontal: true, vertical: false)
+      .contentTransition(.numericText(value: selectedDateNumericValue))
+      .animation(.snappy, value: selectedDateNumericValue)
+    }
+    .simultaneousGesture(
+      LongPressGesture()
+        .onChanged { _ in
+          lastDateButtonLongPressDate = .now
+        }
+        .onEnded { _ in
+          lastDateButtonLongPressDate = .now
+          resetSelectedDateToToday()
+        }
+    )
+    .accessibilityLabel("Select date")
+    .accessibilityAction {
+      isDatePickerPresented = true
+    }
+    .accessibilityAction(named: "Reset to today") {
+      resetSelectedDateToToday()
+    }
+  }
+
+  private var shouldSuppressDatePickerTap: Bool {
+    guard let lastDateButtonLongPressDate else { return false }
+
+    return Date.now.timeIntervalSince(lastDateButtonLongPressDate) < 0.5
+  }
+
+  private var datePickerSheet: some View {
+    DatePicker(
+      "Select date",
+      selection: $selectedDate,
+      displayedComponents: .date
+    )
+    .datePickerStyle(.graphical)
+    .labelsHidden()
+    .padding()
+    .onChange(of: selectedDate) {
+      isDatePickerPresented = false
+    }
+    .presentationDetents([.height(400)])
+    .presentationDragIndicator(.visible)
+  }
+
+  private var selectedDateNumericValue: Double {
+    Calendar.current.startOfDay(for: selectedDate)
+      .timeIntervalSinceReferenceDate
+  }
+
+  private var isSelectedDateToday: Bool {
+    Calendar.current.isDateInToday(selectedDate)
+  }
+
+  private func changeSelectedDate(byAddingDays days: Int) {
+    if let date = Calendar.current.date(
+      byAdding: .day,
+      value: days,
+      to: selectedDate
+    ) {
+      withAnimation(.snappy) {
+        selectedDate = date
+      }
+    }
+  }
+
+  private func resetSelectedDateToToday() {
+    guard !isSelectedDateToday else { return }
+
+    withAnimation(.snappy) {
+      selectedDate = .now
     }
   }
 

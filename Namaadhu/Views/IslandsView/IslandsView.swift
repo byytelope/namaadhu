@@ -36,7 +36,17 @@ struct IslandsView: View {
       ScrollView {
         LazyVStack(spacing: 12) {
           ForEach(groupedIslands, id: \.atoll) { group in
-            atollDisclosureCard(group)
+            AtollDisclosureCard(
+              atoll: group.atoll,
+              islands: group.islands,
+              isExpanded: isExpanded(group.atoll),
+              isSearching: isSearching,
+              selectedIsland: selectedIsland,
+              onToggle: {
+                toggleExpansion(for: group.atoll)
+              },
+              onSelect: selectIsland
+            )
           }
         }
         .safeAreaPadding()
@@ -88,86 +98,9 @@ struct IslandsView: View {
     }
   }
 
-  private func atollDisclosureCard(
-    _ group: (atoll: Atoll, islands: [Island])
-  ) -> some View {
-    let isExpanded = isExpanded(group.atoll)
-
-    return VStack(spacing: 0) {
-      Button {
-        if !isSearching {
-          withAnimation(.spring) {
-            toggleExpansion(for: group.atoll)
-          }
-        }
-      } label: {
-        HStack {
-          Text(group.atoll.fullName)
-            .fontDesign(.rounded)
-            .fontWeight(.semibold)
-            .foregroundStyle(.primary)
-
-          Spacer()
-
-          Image(systemName: "chevron.forward")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.secondary)
-            .rotationEffect(
-              isExpanded ? .degrees(90) : .zero
-            )
-        }
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-
-      if isExpanded {
-        VStack(spacing: 0) {
-          ForEach(group.islands) { island in
-            islandButton(island)
-              .id(island.id)
-
-            if island.id != group.islands.last?.id {
-              Divider()
-            }
-          }
-        }
-        .padding(.top)
-        .padding(.leading)
-      }
-    }
-    .padding()
-    .background(
-      .regularMaterial,
-      in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-    )
-  }
-
-  private func islandButton(_ island: Island) -> some View {
-    Button {
-      selectedIsland = island
-      dismiss()
-    } label: {
-      HStack {
-        Text(island.island)
-          .foregroundStyle(.primary)
-
-        Spacer()
-
-        ZStack {
-          if island == selectedIsland {
-            Image(systemName: "checkmark.circle.fill")
-              .font(.title3)
-              .symbolRenderingMode(.palette)
-              .foregroundStyle(.white, Color.accentColor.gradient)
-              .transition(.symbolEffect(.drawOn))
-          }
-        }
-        .frame(width: 20, height: 20)
-      }
-      .padding(.vertical, 14)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
+  private func selectIsland(_ island: Island) {
+    selectedIsland = island
+    dismiss()
   }
 
   private func isExpanded(_ atoll: Atoll) -> Bool {
@@ -272,6 +205,109 @@ struct IslandsView: View {
       .sorted { lhs, rhs in
         lhs.atoll.displayOrder < rhs.atoll.displayOrder
       }
+  }
+}
+
+private struct AtollDisclosureCard: View {
+  let atoll: Atoll
+  let islands: [Island]
+  let isExpanded: Bool
+  let isSearching: Bool
+  let selectedIsland: Island?
+  let onToggle: () -> Void
+  let onSelect: (Island) -> Void
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Button {
+        if !isSearching {
+          withAnimation(.spring) {
+            onToggle()
+          }
+        }
+      } label: {
+        HStack {
+          Text(atoll.fullName)
+            .fontDesign(.rounded)
+            .fontWeight(.semibold)
+            .foregroundStyle(.primary)
+
+          Spacer()
+
+          Image(systemName: "chevron.forward")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .rotationEffect(
+              isExpanded ? .degrees(90) : .zero
+            )
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded {
+        VStack(spacing: 0) {
+          ForEach(islands) { island in
+            IslandSelectionRow(
+              island: island,
+              isSelected: island == selectedIsland,
+              showsDivider: island.id != islands.last?.id,
+              onSelect: {
+                onSelect(island)
+              }
+            )
+            .id(island.id)
+          }
+        }
+        .padding(.top)
+        .padding(.leading)
+      }
+    }
+    .padding()
+    .background(
+      .regularMaterial,
+      in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+    )
+  }
+}
+
+private struct IslandSelectionRow: View {
+  let island: Island
+  let isSelected: Bool
+  let showsDivider: Bool
+  let onSelect: () -> Void
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Button {
+        onSelect()
+      } label: {
+        HStack {
+          Text(island.island)
+            .foregroundStyle(.primary)
+
+          Spacer()
+
+          ZStack {
+            if isSelected {
+              Image(systemName: "checkmark.circle.fill")
+                .font(.title3)
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, Color.accentColor.gradient)
+                .transition(.symbolEffect(.drawOn))
+            }
+          }
+          .frame(width: 20, height: 20)
+        }
+        .padding(.vertical, 14)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      if showsDivider {
+        Divider()
+      }
+    }
   }
 }
 
