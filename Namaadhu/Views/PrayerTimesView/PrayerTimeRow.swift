@@ -31,7 +31,7 @@ struct PrayerTimeRow: View {
           Text(prayer.displayName)
             .font(.system(size: 24, weight: .semibold, design: .rounded))
 
-          if let sunnahSummary = prayer.sunnahSummary {
+          if let sunnahSummary = prayer.sunnahRakahs?.summary {
             Text(sunnahSummary)
               .font(.system(size: 13, weight: .medium, design: .rounded))
               .foregroundStyle(.white.opacity(0.72))
@@ -129,25 +129,6 @@ struct PrayerTimeRow: View {
 
         timerPhase = .hidden
       }
-    }
-  }
-}
-
-private extension Prayer {
-  var sunnahSummary: String? {
-    switch self {
-    case .fajr:
-      "2 before"
-    case .sunrise:
-      nil
-    case .dhuhr:
-      "4 before · 2 after"
-    case .asr:
-      "4 before"
-    case .maghrib:
-      "2 after"
-    case .isha:
-      "2 after · Witr 3"
     }
   }
 }

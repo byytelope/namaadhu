@@ -26,6 +26,45 @@ enum Prayer: String, CaseIterable, Identifiable, Codable, Hashable, Sendable {
     case .isha: return "moon.stars"
     }
   }
+
+  var sunnahRakahs: SunnahRakahs? {
+    switch self {
+    case .fajr:
+      .init(before: 2)
+    case .sunrise:
+      nil
+    case .dhuhr:
+      .init(before: 4, after: 2)
+    case .asr:
+      .init(before: 4)
+    case .maghrib:
+      .init(after: 2)
+    case .isha:
+      .init(after: 2, witr: 3)
+    }
+  }
+}
+
+struct SunnahRakahs: Sendable, Equatable {
+  let before: Int
+  let after: Int
+  let witr: Int
+
+  init(before: Int = 0, after: Int = 0, witr: Int = 0) {
+    self.before = before
+    self.after = after
+    self.witr = witr
+  }
+
+  var summary: String {
+    [
+      before > 0 ? "\(before) before" : nil,
+      after > 0 ? "\(after) after" : nil,
+      witr > 0 ? "Witr \(witr)" : nil,
+    ]
+    .compactMap(\.self)
+    .joined(separator: " · ")
+  }
 }
 
 struct PrayerTimeOccurrence: Identifiable, Sendable, Equatable {
