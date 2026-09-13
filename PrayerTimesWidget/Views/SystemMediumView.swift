@@ -18,9 +18,16 @@ struct SystemMediumView: View {
               .bold()
               .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
 
-            Text(upcomingDate, style: .timer)
-              .font(.title)
-              .fontWeight(.bold)
+            Text(
+              .currentDate,
+              format: .timer(
+                countingDownIn: entry.date..<upcomingDate,
+                showsHours: true,
+                maxPrecision: .seconds(1)
+              )
+            )
+            .font(.title)
+            .fontWeight(.bold)
           }
           Spacer()
 

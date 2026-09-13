@@ -5,6 +5,5 @@ import WidgetKit
 struct PrayerTimesWidgetBundle: WidgetBundle {
   var body: some Widget {
     PrayerTimesWidget()
-    PrayerTimesWidgetLiveActivity()
   }
 }

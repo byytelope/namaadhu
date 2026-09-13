@@ -23,7 +23,7 @@ struct PrayerNotificationsView: View {
           .disabled(isNotificationPermissionUnavailable)
         }
       } header: {
-        Text("Prayer times")
+        Text("Prayer Times")
       } footer: {
         Text(
           "Choose the prayer times for which you would like to receive notifications."
@@ -32,15 +32,22 @@ struct PrayerNotificationsView: View {
 
       if isNotificationPermissionDenied {
         Section {
-          Label {
-            Text(
-              "Notifications are disabled for Namaadhu in Settings. Enable them to manage prayer alerts."
-            )
-          } icon: {
-            Image(systemName: "bell.slash")
+          Button(action: openAppSettings) {
+            Label {
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Notifications are disabled for Namaadhu in Settings.")
+                  .font(.subheadline)
+                  .bold()
+                Text("Tap here to open Settings and enable alerts.")
+                  .font(.caption)
+              }
+            } icon: {
+              Image(systemName: "bell.slash.fill")
+            }
+            .foregroundStyle(Color.secondary.mix(with: .red, by: 0.3))
           }
-          .foregroundStyle(.secondary)
         }
+        .listRowBackground(Color.red.opacity(0.15))
       }
 
       if let schedulingErrorMessage {
@@ -96,6 +103,17 @@ struct PrayerNotificationsView: View {
     return preferences.notificationBinding(for: prayer)
   }
 
+  private func openAppSettings() {
+    guard let settingsUrl = URL(string: UIApplication.openSettingsURLString)
+    else {
+      return
+    }
+
+    if UIApplication.shared.canOpenURL(settingsUrl) {
+      UIApplication.shared.open(settingsUrl)
+    }
+  }
+
   private func updateSchedule(requestingAuthorization: Bool) async {
     do {
       schedulingErrorMessage = nil
@@ -114,7 +132,8 @@ struct PrayerNotificationsView: View {
   }
 
   private func refreshAuthorizationStatus() async {
-    authorizationStatus = await PrayerNotificationScheduler.authorizationStatus()
+    authorizationStatus =
+      await PrayerNotificationScheduler.authorizationStatus()
 
     guard
       authorizationStatus == .some(.authorized)
@@ -126,6 +145,7 @@ struct PrayerNotificationsView: View {
 
     await updateSchedule(requestingAuthorization: false)
   }
+
 }
 
 #Preview {

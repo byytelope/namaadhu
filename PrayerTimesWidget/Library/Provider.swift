@@ -22,12 +22,40 @@ struct Provider: TimelineProvider {
     completion: @escaping (Timeline<PrayerTimesEntry>) -> Void
   ) {
     let now = Date()
+    let currentEntry = makeEntry(for: now)
 
-    let entry = makeEntry(for: now)
-    let reloadDate = entry.upcomingPrayerDate ?? now.addingTimeInterval(3600)
+    guard let firstTransitionDate = currentEntry.upcomingPrayerDate else {
+      completion(
+        Timeline(
+          entries: [currentEntry],
+          policy: .after(now.addingTimeInterval(3600))
+        )
+      )
+      return
+    }
 
-    let timeline = Timeline(entries: [entry], policy: .after(reloadDate))
-    completion(timeline)
+    var entries = [currentEntry]
+    var transitionDate = firstTransitionDate
+
+    // Preload prayer transitions so WidgetKit can change the displayed prayer
+    // even while the containing app is suspended.
+    while entries.count < 8 {
+      let transitionEntry = makeEntry(for: transitionDate)
+
+      guard
+        let nextTransitionDate = transitionEntry.upcomingPrayerDate,
+        nextTransitionDate > transitionDate
+      else {
+        break
+      }
+
+      entries.append(transitionEntry)
+      transitionDate = nextTransitionDate
+    }
+
+    let policy: TimelineReloadPolicy =
+      entries.count > 1 ? .atEnd : .after(firstTransitionDate)
+    completion(Timeline(entries: entries, policy: policy))
   }
 
   private func makeEntry(for date: Date) -> PrayerTimesEntry {

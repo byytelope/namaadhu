@@ -426,6 +426,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Namaadhu;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Use your location to select the nearest island for prayer times.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Namaadhu uses device motion to subtly animate sunlight in the Dhuhr prayer card.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -481,6 +482,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Namaadhu;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Use your location to select the nearest island for prayer times.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Namaadhu uses device motion to subtly animate sunlight in the Dhuhr prayer card.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

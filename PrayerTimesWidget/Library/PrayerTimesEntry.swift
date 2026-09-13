@@ -8,9 +8,10 @@ struct PrayerTimesEntry: TimelineEntry {
   let upcomingPrayer: Prayer?
   let upcomingPrayerDate: Date?
   let prayerTimes: PrayerTimes?
-
+  
+  static let _date = Date()
   static let empty = PrayerTimesEntry(
-    date: Date(),
+    date: _date,
     selectedIslandName: nil,
     currentPrayer: nil,
     upcomingPrayer: nil,
@@ -19,11 +20,11 @@ struct PrayerTimesEntry: TimelineEntry {
   )
 
   static let placeholder = PrayerTimesEntry(
-    date: Date(),
+    date: _date,
     selectedIslandName: "K. Malé",
     currentPrayer: .dhuhr,
     upcomingPrayer: .asr,
-    upcomingPrayerDate: Date().addingTimeInterval(3600),
+    upcomingPrayerDate: _date.addingTimeInterval(3600),
     prayerTimes: mockPrayerTimes[0]
   )
 }

@@ -20,17 +20,31 @@ struct SystemSmallView: View {
               .font(.headline)
               .bold()
 
-            Text(upcomingDate, style: .time)
-              .font(.caption2)
-              .bold()
-              .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
+            Text(
+              .currentDate,
+              format: .timer(
+                countingDownIn: entry.date..<upcomingDate,
+                showsHours: true,
+                maxPrecision: .seconds(1)
+              )
+            )
+            .font(.caption2)
+            .bold()
+            .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
           }
           Spacer()
         }
 
         Spacer()
 
-        Text(upcomingDate, style: .timer)
+        Text(
+          .currentDate,
+          format: .timer(
+            countingDownIn: entry.date..<upcomingDate,
+            showsHours: true,
+            maxPrecision: .seconds(1)
+          )
+        )
           .font(.system(size: 32, weight: .semibold))
 
         HStack(spacing: 4) {

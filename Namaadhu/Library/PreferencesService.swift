@@ -5,7 +5,8 @@ import WidgetKit
 class PreferencesService {
   private enum Storage {
     static let selectedIslandDataKey = "selectedIslandData"
-    static let notificationPrayerIdentifiersKey = "notificationPrayerIdentifiers"
+    static let notificationPrayerIdentifiersKey =
+      "notificationPrayerIdentifiers"
 
     static var selectedIslandData: Data? {
       get {
@@ -37,6 +38,7 @@ class PreferencesService {
         )
       }
     }
+
   }
 
   var selectedIsland: Island? {
@@ -55,9 +57,7 @@ class PreferencesService {
   var selectedIslandBinding: Binding<Island?> {
     Binding(
       get: { self.selectedIsland },
-      set: { newValue in
-        self.selectedIsland = newValue
-      }
+      set: { self.selectedIsland = $0 }
     )
   }
 

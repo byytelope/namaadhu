@@ -47,6 +47,7 @@ struct ContentView: View {
       )
     }
   }
+
 }
 
 private struct ContentViewPreview: View {
