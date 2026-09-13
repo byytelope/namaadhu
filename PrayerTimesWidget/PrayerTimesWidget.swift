@@ -11,12 +11,44 @@ struct PrayerTimesWidget: Widget {
     }
     .configurationDisplayName("Prayer Times")
     .description("Countdown to upcoming prayer & list of prayers for the day.")
-    .supportedFamilies([.systemSmall, .systemMedium])
+    .supportedFamilies([
+      .systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular,
+    ])
   }
 }
 
 #Preview(as: .systemMedium) {
   PrayerTimesWidget()
 } timeline: {
-  PrayerTimesEntry.placeholder
+  PrayerTimesEntry.progressPreview(fraction: 0.5)
+}
+
+#Preview(as: .accessoryCircular) {
+  PrayerTimesWidget()
+} timeline: {
+  PrayerTimesEntry.progressPreview(fraction: 0.5)
+}
+
+#Preview(as: .accessoryRectangular) {
+  PrayerTimesWidget()
+} timeline: {
+  PrayerTimesEntry.progressPreview(fraction: 0.5)
+}
+
+#Preview("No island", as: .systemMedium) {
+  PrayerTimesWidget()
+} timeline: {
+  PrayerTimesEntry.empty
+}
+
+#Preview("No island · Circular", as: .accessoryCircular) {
+  PrayerTimesWidget()
+} timeline: {
+  PrayerTimesEntry.empty
+}
+
+#Preview("No island · Rectangular", as: .accessoryRectangular) {
+  PrayerTimesWidget()
+} timeline: {
+  PrayerTimesEntry.empty
 }

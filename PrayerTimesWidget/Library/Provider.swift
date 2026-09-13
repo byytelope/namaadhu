@@ -1,5 +1,5 @@
 import GRDB
-import SwiftUI
+import Foundation
 import WidgetKit
 
 struct Provider: TimelineProvider {
@@ -85,13 +85,23 @@ struct Provider: TimelineProvider {
       return .empty
     }
 
+    var currentPrayerDate = todayPrayerTimes.orderedDates()
+      .last(where: { $0.date <= date })?.date
+    if currentPrayerDate == nil,
+      let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: date)
+    {
+      currentPrayerDate = loadPrayerTimes(for: island, on: yesterday)?
+        .orderedDates().last(where: { $0.date <= date })?.date
+    }
+
     return PrayerTimesEntry(
       date: date,
       selectedIslandName: island.name,
       currentPrayer: state.currentPrayer,
       upcomingPrayer: state.upcomingPrayer,
       upcomingPrayerDate: state.upcomingPrayerDate,
-      prayerTimes: todayPrayerTimes
+      prayerTimes: todayPrayerTimes,
+      currentPrayerDate: currentPrayerDate
     )
   }
 

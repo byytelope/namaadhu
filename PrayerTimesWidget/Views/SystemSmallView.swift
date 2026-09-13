@@ -4,61 +4,45 @@ struct SystemSmallView: View {
   var entry: Provider.Entry
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 2) {
+    VStack(alignment: .leading, spacing: 12) {
       if let upcoming = entry.upcomingPrayer,
-        let upcomingDate = entry.upcomingPrayerDate,
-        let selectedIslandName = entry.selectedIslandName
+        let interval = entry.progressInterval,
+        let island = entry.selectedIslandName
       {
-        HStack {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("UPCOMING")
-              .font(.caption2)
-              .bold()
-              .foregroundStyle(.accent)
-
-            Text(upcoming.displayName)
-              .font(.headline)
-              .bold()
-
-            Text(
-              .currentDate,
-              format: .timer(
-                countingDownIn: entry.date..<upcomingDate,
-                showsHours: true,
-                maxPrecision: .seconds(1)
-              )
-            )
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Upcoming")
             .font(.caption2)
-            .bold()
-            .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
-          }
-          Spacer()
+            .foregroundStyle(.secondary)
+          Text(upcoming.displayName)
+            .font(.title.weight(.semibold))
+            .foregroundStyle(.accent)
+            .fontDesign(.rounded)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
 
-        Spacer()
+        PrayerCountdownContainer(interval: interval)
+          .font(.system(size: 27, weight: .bold))
+          .padding(.horizontal, -6)
 
-        Text(
-          .currentDate,
-          format: .timer(
-            countingDownIn: entry.date..<upcomingDate,
-            showsHours: true,
-            maxPrecision: .seconds(1)
-          )
-        )
-          .font(.system(size: 32, weight: .semibold))
+        Spacer(minLength: 0)
 
         HStack(spacing: 4) {
-          Text(selectedIslandName)
           Image(systemName: "location.fill")
+          Text(island)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
         }
-        .font(.caption2)
-        .fontWeight(.semibold)
-        .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(.accent)
+        .fontDesign(.rounded)
       } else {
         Text("No upcoming prayer")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
     }
+    .frame(maxHeight: .infinity)
+    .fontDesign(.rounded)
   }
 }

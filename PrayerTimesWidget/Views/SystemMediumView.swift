@@ -4,54 +4,45 @@ struct SystemMediumView: View {
   var entry: Provider.Entry
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 2) {
+    VStack(alignment: .leading, spacing: 10) {
       if let current = entry.currentPrayer,
         let upcoming = entry.upcomingPrayer,
-        let upcomingDate = entry.upcomingPrayerDate,
+        let interval = entry.progressInterval,
         let selectedIslandName = entry.selectedIslandName,
         let prayerTimes = entry.prayerTimes
       {
         HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 2) {
+          VStack(alignment: .leading, spacing: 6) {
             Text(upcoming.displayName)
-              .font(.subheadline)
-              .bold()
+              .font(.system(size: 16, weight: .semibold))
               .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
 
-            Text(
-              .currentDate,
-              format: .timer(
-                countingDownIn: entry.date..<upcomingDate,
-                showsHours: true,
-                maxPrecision: .seconds(1)
-              )
-            )
-            .font(.title)
-            .fontWeight(.bold)
+            Text(timerInterval: interval, countsDown: true, showsHours: true)
+              .monospacedDigit()
+              .lineLimit(1)
+              .foregroundStyle(Color.primary.mix(with: .accent, by: 0.5))
+              .minimumScaleFactor(0.65)
+              .font(.system(size: 40, weight: .bold))
           }
           Spacer()
 
-          HStack(alignment: .top, spacing: 4) {
-            VStack(alignment: .trailing, spacing: 2) {
+          VStack(alignment: .trailing, spacing: 2) {
+            HStack(spacing: 4) {
+              Image(systemName: "location.fill")
               Text(selectedIslandName)
-                .font(.footnote)
-                .bold()
-                .foregroundStyle(.accent)
-
-              Text(entry.date.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
             }
+            .font(.footnote)
+            .bold()
+            .foregroundStyle(.accent)
 
-            Image(systemName: "location.fill")
-              .font(.footnote)
-              .bold()
-              .foregroundStyle(.accent)
+            Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+              .font(.caption)
+              .fontWeight(.semibold)
+              .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
           }
         }
-
-        Spacer()
 
         HStack(spacing: 4) {
           ForEach(prayerTimes.orderedDates()) { occurrence in
@@ -94,17 +85,17 @@ struct SystemMediumView: View {
             }
             .symbolVariant(.fill)
             .symbolRenderingMode(.hierarchical)
-            .frame(maxWidth: .infinity, maxHeight: 60)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 4)
             .padding(.vertical, 6)
-            .background(
+            .background {
               ConcentricRectangle()
                 .fill(
                   current == occurrence.prayer
                     ? .accent.mix(with: .secondary, by: 0.5).opacity(0.5)
                     : .accent.mix(with: .secondary, by: 0.5).opacity(0.1)
                 )
-            )
+            }
           }
         }
       } else {
@@ -113,5 +104,7 @@ struct SystemMediumView: View {
           .foregroundStyle(.secondary)
       }
     }
+    .frame(maxHeight: .infinity, alignment: .center)
+    .fontDesign(.rounded)
   }
 }
