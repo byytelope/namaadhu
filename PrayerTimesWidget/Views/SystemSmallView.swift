@@ -9,20 +9,18 @@ struct SystemSmallView: View {
         let interval = entry.progressInterval,
         let island = entry.selectedIslandName
       {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading) {
           Text("Upcoming")
             .font(.caption2)
             .foregroundStyle(.secondary)
           Text(upcoming.displayName)
-            .font(.title.weight(.semibold))
+            .font(.title3.weight(.semibold))
             .foregroundStyle(.accent)
             .fontDesign(.rounded)
         }
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
 
         PrayerCountdownContainer(interval: interval)
-          .font(.system(size: 27, weight: .bold))
+          .font(.system(size: 32, weight: .bold))
           .padding(.horizontal, -6)
 
         Spacer(minLength: 0)

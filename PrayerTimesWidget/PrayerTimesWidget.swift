@@ -20,19 +20,19 @@ struct PrayerTimesWidget: Widget {
 #Preview(as: .systemMedium) {
   PrayerTimesWidget()
 } timeline: {
-  PrayerTimesEntry.progressPreview(fraction: 0.5)
+  PrayerTimesEntry.progressPreview(fraction: 0.75)
 }
 
 #Preview(as: .accessoryCircular) {
   PrayerTimesWidget()
 } timeline: {
-  PrayerTimesEntry.progressPreview(fraction: 0.5)
+  PrayerTimesEntry.progressPreview(fraction: 0.75)
 }
 
 #Preview(as: .accessoryRectangular) {
   PrayerTimesWidget()
 } timeline: {
-  PrayerTimesEntry.progressPreview(fraction: 0.5)
+  PrayerTimesEntry.progressPreview(fraction: 0.75)
 }
 
 #Preview("No island", as: .systemMedium) {

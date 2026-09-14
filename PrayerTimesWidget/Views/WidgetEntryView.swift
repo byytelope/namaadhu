@@ -43,7 +43,7 @@ struct PrayerProgressFill: View {
 
   var body: some View {
     GeometryReader { geometry in
-      ProgressView(timerInterval: interval, countsDown: false) {
+      ProgressView(timerInterval: interval, countsDown: true) {
         EmptyView()
       } currentValueLabel: {
         EmptyView()
@@ -67,7 +67,7 @@ struct LockScreenPrayerView: View {
     {
       if circular {
         ZStack {
-          ProgressView(timerInterval: interval, countsDown: false) {
+          ProgressView(timerInterval: interval, countsDown: true) {
             EmptyView()
           } currentValueLabel: {
             EmptyView()
@@ -91,7 +91,7 @@ struct LockScreenPrayerView: View {
               .foregroundStyle(.secondary)
             countdown(interval)
               .font(.title2.bold())
-            ProgressView(timerInterval: interval, countsDown: false) {
+            ProgressView(timerInterval: interval, countsDown: true) {
               EmptyView()
             } currentValueLabel: {
               EmptyView()

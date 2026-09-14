@@ -16,7 +16,6 @@ struct SystemMediumView: View {
             Text(upcoming.displayName)
               .font(.system(size: 16, weight: .semibold))
               .foregroundStyle(.accent.mix(with: .secondary, by: 0.5))
-
             Text(timerInterval: interval, countsDown: true, showsHours: true)
               .monospacedDigit()
               .lineLimit(1)
