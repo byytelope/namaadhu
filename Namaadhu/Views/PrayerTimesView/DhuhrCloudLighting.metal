@@ -24,8 +24,9 @@ static float cloudAlpha(texture2d<half> cloud, float2 point, float4 rect) {
     } else {
         alpha = cloudAlpha(cloud, position, rect);
     }
-    // Optical depth approximation: thin vapor passes light; denser areas attenuate it.
-    float transmission = exp(-alpha * density * (isFlare > 0.5 ? 2.8 : 2.0));
+    // Keep these light clouds translucent to the sun; flares remain more
+    // sensitive to coverage without disappearing as quickly.
+    float transmission = exp(-alpha * density * (isFlare > 0.5 ? 1.6 : 1.0));
     return color * half(transmission);
 }
 

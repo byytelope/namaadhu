@@ -70,18 +70,29 @@ struct DhuhrSky: View {
   }
 
   private func cloudSprites(width: CGFloat, elapsed: TimeInterval) -> [DhuhrCloudSprite] {
-    let phase = Double((seed >> 8) % 1024) / 1024 * 2 * .pi
+    let phaseUnit = Double((seed >> 8) % 1024) / 1024
+    let phase = phaseUnit * 2 * .pi
     let crossingWidth = min(width * 0.82, 320)
     let distantWidth = min(width * 0.70, 350)
+    let sunX = width * 0.72
+    // Spend most of the cycle clear of the entire sun, with an occasional
+    // crossing at the right end of the path. Every seed starts on the clear side.
+    let clearance = crossingWidth / 2 + 60
+    let crossingPhase = -.pi * (0.15 + phaseUnit * 0.70)
+    let crossingX = sunX - clearance
+      + (clearance + 32) * sin(elapsed * 2 * .pi / 270 + crossingPhase)
+    // Include the bank's full drift range so it cannot fill the clearing.
+    let distantAnchor = min(width * 0.23, sunX - distantWidth / 2 - 60 - 28)
+
     return [
       DhuhrCloudSprite(
         asset: assetName(.layer, seed: seed),
-        center: CGPoint(x: width * 0.72 + 35 + 80 * sin(elapsed * 2 * .pi / 210 + phase), y: 32),
+        center: CGPoint(x: crossingX, y: 32),
         width: crossingWidth, density: 0.85
       ),
       DhuhrCloudSprite(
         asset: assetName(.bank, seed: seed >> 4),
-        center: CGPoint(x: width * 0.23 + 28 * sin(elapsed * 2 * .pi / 290 + phase * 0.7), y: 48),
+        center: CGPoint(x: distantAnchor + 28 * sin(elapsed * 2 * .pi / 290 + phase * 0.7), y: 48),
         width: distantWidth, density: 0.44
       ),
     ]

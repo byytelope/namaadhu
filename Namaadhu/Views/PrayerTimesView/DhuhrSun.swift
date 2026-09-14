@@ -83,10 +83,10 @@ struct DhuhrSun: View {
                 ],
                 center: .center,
                 startRadius: 0,
-                endRadius: 42
+                endRadius: 60
               )
             )
-            .frame(width: 84, height: 84)
+            .frame(width: 120, height: 120)
             .blur(radius: 3)
             .scaleEffect(motionEnabled ? 1.04 : 0.98)
             .position(sunPosition)
@@ -130,11 +130,11 @@ struct DhuhrSun: View {
                 ],
                 center: .center,
                 startRadius: 0,
-                endRadius: 16
+                endRadius: 26
               )
             )
-            .frame(width: 31, height: 31)
-            .shadow(color: .white.opacity(0.9), radius: 7)
+            .frame(width: 52, height: 52)
+            .shadow(color: .white.opacity(0.9), radius: 11)
             .scaleEffect(motionEnabled ? 1.02 : 0.99)
             .opacity(motionEnabled ? 1 : 0.96)
             .position(sunPosition)

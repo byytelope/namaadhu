@@ -23,7 +23,7 @@ struct PrayerNotificationsView: View {
           .disabled(isNotificationPermissionUnavailable)
         }
       } header: {
-        Text("Prayer Times")
+        Text("Prayers")
       } footer: {
         Text(
           "Choose the prayer times for which you would like to receive notifications."
