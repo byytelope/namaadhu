@@ -2,18 +2,20 @@ import SwiftUI
 
 struct PrayerAtmosphericDetails: View {
   let prayer: Prayer
-
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-  @State private var atmosphericRenderSeed = UInt64.random(in: 1...UInt64.max)
+  @State private var shootingStarRenderSeed = UInt64.random(in: 1...UInt64.max)
 
   var body: some View {
     ZStack {
-      if !clouds.isEmpty {
-        CloudLayer(clouds: clouds)
+      if prayer == .maghrib {
+        DaytimeClouds(style: .maghrib)
       }
 
       if !stars.isEmpty {
-        StarLayer(stars: stars)
+        StarLayer(
+          stars: stars,
+          horizonFade: horizonStarFade
+        )
       }
 
       if !shootingStars.isEmpty {
@@ -21,7 +23,7 @@ struct PrayerAtmosphericDetails: View {
       }
 
       if prayer == .dhuhr {
-        DhuhrSun()
+        DhuhrSky()
       }
     }
     .allowsHitTesting(false)
@@ -32,212 +34,54 @@ struct PrayerAtmosphericDetails: View {
     switch prayer {
     case .fajr:
       [
-        .init(x: 0.15, y: 0.22, size: 1.6, opacity: 0.32),
-        .init(x: 0.33, y: 0.12, size: 1.2, opacity: 0.25),
-        .init(x: 0.57, y: 0.28, size: 1.7, opacity: 0.28),
-        .init(x: 0.82, y: 0.18, size: 1.2, opacity: 0.30),
+        .init(x: 0.12, y: 0.18, size: 1.2, opacity: 0.24),
+        .init(x: 0.29, y: 0.10, size: 0.9, opacity: 0.18),
+        .init(x: 0.48, y: 0.27, size: 1.4, opacity: 0.22),
+        .init(x: 0.71, y: 0.16, size: 1.0, opacity: 0.20),
+        .init(x: 0.89, y: 0.34, size: 0.8, opacity: 0.15),
       ]
     case .maghrib:
       [
-        .init(x: 0.18, y: 0.18, size: 1.2, opacity: 0.22),
-        .init(x: 0.72, y: 0.14, size: 1.5, opacity: 0.24),
-        .init(x: 0.88, y: 0.30, size: 1.1, opacity: 0.22),
+        .init(x: 0.12, y: 0.20, size: 1.0, opacity: 0.16),
+        .init(x: 0.36, y: 0.13, size: 1.3, opacity: 0.18),
+        .init(x: 0.64, y: 0.25, size: 0.9, opacity: 0.14),
+        .init(x: 0.88, y: 0.16, size: 1.2, opacity: 0.18),
       ]
     case .isha:
       [
-        .init(x: 0.10, y: 0.24, size: 1.5, opacity: 0.52),
-        .init(x: 0.24, y: 0.12, size: 2.1, opacity: 0.65),
-        .init(x: 0.38, y: 0.34, size: 1.2, opacity: 0.44),
-        .init(x: 0.54, y: 0.16, size: 1.6, opacity: 0.55),
-        .init(x: 0.69, y: 0.28, size: 2.0, opacity: 0.62),
-        .init(x: 0.84, y: 0.13, size: 1.2, opacity: 0.48),
-        .init(x: 0.92, y: 0.40, size: 1.7, opacity: 0.52),
+        .init(x: 0.08, y: 0.22, size: 1.2, opacity: 0.42),
+        .init(x: 0.22, y: 0.11, size: 1.7, opacity: 0.58),
+        .init(x: 0.35, y: 0.31, size: 0.8, opacity: 0.32),
+        .init(x: 0.48, y: 0.18, size: 1.1, opacity: 0.44),
+        .init(x: 0.63, y: 0.28, size: 1.6, opacity: 0.54),
+        .init(x: 0.78, y: 0.13, size: 0.9, opacity: 0.38),
+        .init(x: 0.88, y: 0.36, size: 1.2, opacity: 0.44),
+        .init(x: 0.95, y: 0.20, size: 0.8, opacity: 0.34),
       ]
     case .sunrise, .dhuhr, .asr:
       []
     }
   }
 
-  private var clouds: [Cloud] {
-    CloudScene.generate(
-      for: prayer,
-      horizontalSizeClass: horizontalSizeClass,
-      renderSeed: atmosphericRenderSeed
-    )
-  }
-
   private var shootingStars: [ShootingStar] {
     ShootingStarScene.generate(
       for: prayer,
       horizontalSizeClass: horizontalSizeClass,
-      renderSeed: atmosphericRenderSeed
+      renderSeed: shootingStarRenderSeed
     )
   }
-}
 
-private enum CloudScene {
-  static func generate(
-    for prayer: Prayer,
-    horizontalSizeClass: UserInterfaceSizeClass?,
-    renderSeed: UInt64
-  ) -> [Cloud] {
+  private var horizonStarFade: Double {
     switch prayer {
-    case .sunrise:
-      return generateClouds(
-        prayerSalt: 0x51_71_52_15_45,
-        renderSeed: renderSeed,
-        horizontalSizeClass: horizontalSizeClass,
-        opacityRange: opacityRange(
-          compact: 0.075...0.125,
-          regular: 0.045...0.085,
-          horizontalSizeClass: horizontalSizeClass
-        ),
-        silhouettes: [.cumulus, .flatShelf, .band, .veil]
-      )
-    case .asr:
-      return generateClouds(
-        prayerSalt: 0xA5_12_34_89,
-        renderSeed: renderSeed,
-        horizontalSizeClass: horizontalSizeClass,
-        opacityRange: opacityRange(
-          compact: 0.075...0.125,
-          regular: 0.045...0.085,
-          horizontalSizeClass: horizontalSizeClass
-        ),
-        silhouettes: [.cumulus, .flatShelf, .band]
-      )
-    case .fajr, .dhuhr, .maghrib, .isha:
-      return []
+    case .fajr:
+      0.56
+    case .maghrib:
+      0.48
+    case .isha:
+      0.12
+    case .sunrise, .dhuhr, .asr:
+      0
     }
-  }
-
-  private static func generateClouds(
-    prayerSalt: UInt64,
-    renderSeed: UInt64,
-    horizontalSizeClass: UserInterfaceSizeClass?,
-    opacityRange: ClosedRange<Double>,
-    silhouettes: [CloudSilhouette]
-  ) -> [Cloud] {
-    var generator = SeededValueGenerator(seed: renderSeed ^ prayerSalt)
-    let count = generator.nextInt(in: 2...3)
-    let selectedSilhouettes = selectedSilhouettes(
-      count: count,
-      from: silhouettes,
-      using: &generator
-    )
-    let isRegular = horizontalSizeClass == .regular
-    let slotWidth = CGFloat(0.76) / CGFloat(count)
-    let leadingInset: CGFloat = 0.12
-
-    return selectedSilhouettes.enumerated().map { index, silhouette in
-      let slotCenter = leadingInset + (slotWidth * (CGFloat(index) + 0.5))
-      let x = slotCenter + generator.next(
-        in: (-slotWidth * 0.36)...(slotWidth * 0.36)
-      )
-      let width = generator.next(
-        in: widthRange(
-          for: silhouette,
-          isRegular: isRegular
-        )
-      )
-      let y = generator.next(
-        in: yRange(
-          for: silhouette,
-          isRegular: isRegular
-        )
-      )
-      let opacity = Double(generator.next(
-        in: CGFloat(opacityRange.lowerBound)...CGFloat(opacityRange.upperBound)
-      ))
-
-      return Cloud(
-        x: min(max(x, 0.10), 0.90),
-        y: y,
-        width: width,
-        opacity: opacity,
-        silhouette: silhouette
-      )
-    }
-  }
-
-  private static func selectedSilhouettes(
-    count: Int,
-    from silhouettes: [CloudSilhouette],
-    using generator: inout SeededValueGenerator
-  ) -> [CloudSilhouette] {
-    var selected = (0..<count).map { _ in
-      silhouettes[generator.nextInt(in: 0...(silhouettes.count - 1))]
-    }
-
-    selected[generator.nextInt(in: 0...(count - 1))] = .cumulus
-
-    return selected
-  }
-
-  private static func widthRange(
-    for silhouette: CloudSilhouette,
-    isRegular: Bool
-  ) -> ClosedRange<CGFloat> {
-    if isRegular {
-      switch silhouette {
-      case .cumulus:
-        return 0.25...0.34
-      case .flatShelf:
-        return 0.22...0.31
-      case .band:
-        return 0.24...0.34
-      case .veil:
-        return 0.18...0.28
-      }
-    }
-
-    switch silhouette {
-    case .cumulus:
-      return 0.24...0.34
-    case .flatShelf:
-      return 0.22...0.31
-    case .band:
-      return 0.23...0.33
-    case .veil:
-      return 0.18...0.27
-    }
-  }
-
-  private static func yRange(
-    for silhouette: CloudSilhouette,
-    isRegular: Bool
-  ) -> ClosedRange<CGFloat> {
-    if isRegular {
-      switch silhouette {
-      case .cumulus:
-        return 0.25...0.35
-      case .flatShelf:
-        return 0.40...0.54
-      case .band:
-        return 0.38...0.52
-      case .veil:
-        return 0.46...0.62
-      }
-    }
-
-    switch silhouette {
-    case .cumulus:
-      return 0.28...0.38
-    case .flatShelf:
-      return 0.40...0.54
-    case .band:
-      return 0.38...0.52
-    case .veil:
-      return 0.46...0.62
-    }
-  }
-
-  private static func opacityRange(
-    compact: ClosedRange<Double>,
-    regular: ClosedRange<Double>,
-    horizontalSizeClass: UserInterfaceSizeClass?
-  ) -> ClosedRange<Double> {
-    horizontalSizeClass == .regular ? regular : compact
   }
 }
 
@@ -276,214 +120,9 @@ private enum ShootingStarScene {
   }
 }
 
-private struct CloudLayer: View {
-  let clouds: [Cloud]
-
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-  @State private var drifts = false
-
-  var body: some View {
-    GeometryReader { proxy in
-      ForEach(clouds.indices, id: \.self) { index in
-        let cloud = clouds[index]
-        let form = GeneratedCloudForm.generate(
-          seed: cloudSeed(for: cloud, at: index),
-          preferredSilhouette: cloud.silhouette
-        )
-        let metrics = form.silhouette.metrics(
-          for: horizontalSizeClass
-        )
-        let aspectRatio = cloudAspectRatio(for: form, metrics: metrics)
-        let width = cloudWidth(
-          for: cloud,
-          at: index,
-          in: proxy.size,
-          aspectRatio: aspectRatio,
-          metrics: metrics
-        )
-        let height = width * aspectRatio
-
-        GeneratedCloudShape(form: form)
-          .fill(
-            .white.opacity(
-              cloudOpacity(for: cloud, at: index, metrics: metrics)
-            )
-          )
-          .frame(width: width, height: height)
-          .blur(radius: cloudBlur(for: width, metrics: metrics))
-          .position(
-            x: proxy.size.width * cloud.x,
-            y: cloudPositionY(
-              for: cloud,
-              silhouette: form.silhouette,
-              in: proxy.size
-            )
-          )
-          .offset(
-            x: horizontalOffset(
-              for: form.silhouette,
-              at: index,
-              in: proxy.size
-            ),
-            y: verticalOffset(for: form.silhouette, at: index)
-          )
-          .animation(
-            cloudAnimation(for: form.silhouette, at: index),
-            value: drifts
-          )
-      }
-    }
-    .onAppear(perform: updateMotion)
-    .onChange(of: reduceMotion) {
-      updateMotion()
-    }
-  }
-
-  private func updateMotion() {
-    if reduceMotion {
-      var transaction = Transaction()
-      transaction.disablesAnimations = true
-
-      withTransaction(transaction) {
-        drifts = false
-      }
-    } else {
-      drifts = true
-    }
-  }
-
-  private func horizontalOffset(
-    for silhouette: CloudSilhouette,
-    at index: Int,
-    in size: CGSize
-  ) -> CGFloat {
-    guard !reduceMotion else { return 0 }
-
-    let direction: CGFloat = index % 2 == 0 ? 1 : -1
-    let travel = min(14, max(7, size.width * 0.028))
-
-    return drifts
-      ? travel * silhouette.motionTravelScale * direction
-      : -travel * 0.45 * silhouette.motionTravelScale * direction
-  }
-
-  private func verticalOffset(
-    for silhouette: CloudSilhouette,
-    at index: Int
-  ) -> CGFloat {
-    guard !reduceMotion else { return 0 }
-
-    let travel: CGFloat = index % 2 == 0 ? 1.4 : -1
-    let silhouetteScale: CGFloat = silhouette == .cumulus ? 0.72 : 1
-
-    return drifts ? travel * silhouetteScale : -travel * silhouetteScale
-  }
-
-  private func cloudAnimation(
-    for silhouette: CloudSilhouette,
-    at index: Int
-  ) -> Animation? {
-    guard !reduceMotion else { return nil }
-
-    return .easeInOut(
-      duration: silhouette.motionDuration(
-        for: horizontalSizeClass,
-        offsetIndex: index
-      )
-    )
-      .repeatForever(autoreverses: true)
-  }
-
-  private func cloudWidth(
-    for cloud: Cloud,
-    at index: Int,
-    in size: CGSize,
-    aspectRatio: CGFloat,
-    metrics: CloudSilhouette.Metrics
-  ) -> CGFloat {
-    let isRegular = horizontalSizeClass == .regular
-    let lengthScale = cloudLengthScale(for: aspectRatio)
-    let absoluteMaxWidth: CGFloat =
-      isRegular
-      ? (index % 2 == 0 ? 270 : 230)
-      : (index % 2 == 0 ? 126 : 96)
-    let heightScale: CGFloat =
-      isRegular
-      ? (index % 2 == 0 ? 3.6 : 3.1)
-      : (index % 2 == 0 ? 1.36 : 1.08)
-    let heightBasedMaxWidth = size.height * heightScale
-
-    return min(
-      size.width * cloud.width * metrics.widthScale * lengthScale,
-      absoluteMaxWidth * lengthScale,
-      heightBasedMaxWidth
-    )
-  }
-
-  private func cloudAspectRatio(
-    for form: GeneratedCloudForm,
-    metrics: CloudSilhouette.Metrics
-  ) -> CGFloat {
-    max(
-      form.aspectRatio * metrics.aspectRatioScale,
-      metrics.minimumAspectRatio
-    )
-  }
-
-  private func cloudLengthScale(for aspectRatio: CGFloat) -> CGFloat {
-    let minAspectRatio: CGFloat = 0.16
-    let maxAspectRatio: CGFloat = 0.24
-    let normalizedFlatness = (maxAspectRatio - aspectRatio)
-      / (maxAspectRatio - minAspectRatio)
-    let flatness = min(max(normalizedFlatness, 0), 1)
-    let maxExtraLength: CGFloat = horizontalSizeClass == .regular
-      ? 0.36
-      : 0.22
-
-    return 1 + flatness * maxExtraLength
-  }
-
-  private func cloudOpacity(
-    for cloud: Cloud,
-    at index: Int,
-    metrics: CloudSilhouette.Metrics
-  ) -> Double {
-    let factor = index % 2 == 0 ? 1.14 : 1.04
-
-    return min(cloud.opacity * factor * metrics.opacityScale, 0.15)
-  }
-
-  private func cloudBlur(
-    for width: CGFloat,
-    metrics: CloudSilhouette.Metrics
-  ) -> CGFloat {
-    min(5.2, max(3.4, width * 0.036 * metrics.blurScale))
-  }
-
-  private func cloudPositionY(
-    for cloud: Cloud,
-    silhouette: CloudSilhouette,
-    in size: CGSize
-  ) -> CGFloat {
-    let adjustedY = cloud.y + silhouette.verticalBias(
-      for: horizontalSizeClass
-    )
-
-    return size.height * min(max(adjustedY, 0.10), 0.82)
-  }
-
-  private func cloudSeed(for cloud: Cloud, at index: Int) -> UInt64 {
-    let x = UInt64((cloud.x * 1_000).rounded())
-    let y = UInt64((cloud.y * 1_000).rounded())
-    let width = UInt64((cloud.width * 1_000).rounded())
-
-    return x &+ (y &* 31) &+ (width &* 131) &+ UInt64(index &* 997)
-  }
-}
-
 private struct StarLayer: View {
   let stars: [Star]
+  let horizonFade: Double
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var twinkles = false
@@ -529,33 +168,46 @@ private struct StarLayer: View {
   }
 
   private func opacity(for star: Star, at index: Int) -> Double {
-    guard !reduceMotion else { return star.opacity }
+    let baseOpacity = star.opacity * horizonVisibility(for: star)
+
+    guard !reduceMotion else { return baseOpacity }
 
     let isBrightPhase = (index % 2 == 0) == twinkles
-    let factor = isBrightPhase ? 1.10 : 0.68
+    let factor = isBrightPhase ? 1.06 : 0.82
 
-    return min(star.opacity * factor, 0.78)
+    return min(baseOpacity * factor, 0.78)
   }
 
   private func scale(for index: Int) -> CGFloat {
     guard !reduceMotion else { return 1 }
 
-    return (index % 2 == 0) == twinkles ? 1.10 : 0.88
+    return (index % 2 == 0) == twinkles ? 1.04 : 0.94
   }
 
   private func shadowOpacity(for star: Star, at index: Int) -> Double {
-    guard !reduceMotion else { return star.opacity * 0.12 }
+    let baseOpacity = star.opacity * horizonVisibility(for: star)
+
+    guard !reduceMotion else { return baseOpacity * 0.10 }
 
     return (index % 2 == 0) == twinkles
-      ? star.opacity * 0.36
-      : star.opacity * 0.10
+      ? baseOpacity * 0.28
+      : baseOpacity * 0.08
   }
 
   private func starAnimation(for index: Int) -> Animation? {
     guard !reduceMotion else { return nil }
 
-    return .easeInOut(duration: 2.4 + Double(index % 3) * 0.55)
+    return .easeInOut(duration: 3.1 + Double(index % 3) * 0.8)
       .repeatForever(autoreverses: true)
+  }
+
+  private func horizonVisibility(for star: Star) -> Double {
+    let horizonProgress = min(
+      max((Double(star.y) - 0.30) / 0.55, 0),
+      1
+    )
+
+    return 1 - (horizonProgress * horizonFade)
   }
 }
 
@@ -612,13 +264,19 @@ private struct ShootingStarLayer: View {
     }
 
     let progress = elapsed / star.activeDuration
-    let fadeIn = min(progress / 0.18, 1)
-    let fadeOut = min((1 - progress) / 0.48, 1)
+    let fadeIn = smoothStep(progress / 0.18)
+    let fadeOut = smoothStep((1 - progress) / 0.48)
 
     return ShootingStarPhase(
       progress: progress,
       opacity: star.opacity * fadeIn * fadeOut
     )
+  }
+
+  private func smoothStep(_ value: Double) -> Double {
+    let clampedValue = min(max(value, 0), 1)
+
+    return clampedValue * clampedValue * (3 - (2 * clampedValue))
   }
 
   private func offset(
@@ -651,6 +309,7 @@ private struct ShootingStarTrail: View {
     let coreDiameter = max(star.thickness * 1.8, 2.2)
 
     ZStack(alignment: .leading) {
+      // The head sits at the leading edge; the trail extends opposite travel.
       ShootingStarTailShape()
         .fill(tailGradient(opacityScale: 0.32))
         .frame(width: tailLength, height: glowHeight)
@@ -768,347 +427,6 @@ private struct ShootingStarPhase {
   let opacity: Double
 }
 
-private struct GeneratedCloudShape: Shape {
-  let form: GeneratedCloudForm
-
-  func path(in rect: CGRect) -> Path {
-    var path = Path()
-
-    for ellipse in form.ellipses {
-      path.addEllipse(in: ellipse.rect(in: rect))
-    }
-
-    return path
-  }
-}
-
-private struct GeneratedCloudForm {
-  let silhouette: CloudSilhouette
-  let aspectRatio: CGFloat
-  let ellipses: [CloudEllipse]
-
-  static func generate(
-    seed: UInt64,
-    preferredSilhouette: CloudSilhouette?
-  ) -> GeneratedCloudForm {
-    var generator = SeededValueGenerator(seed: seed)
-    let silhouette = preferredSilhouette
-      ?? CloudSilhouette.generated(from: seed)
-
-    switch silhouette {
-    case .cumulus:
-      return cumulus(using: &generator)
-    case .flatShelf:
-      return flatShelf(using: &generator)
-    case .band:
-      return band(using: &generator)
-    case .veil:
-      return veil(using: &generator)
-    }
-  }
-
-  private static func cumulus(
-    using generator: inout SeededValueGenerator
-  ) -> GeneratedCloudForm {
-    let aspectRatio = generator.next(in: 0.19...0.24)
-    let baseHeight = generator.next(in: 0.34...0.44)
-    let baseY = generator.next(in: 0.50...0.60)
-    let leadingWidth = generator.next(in: 0.40...0.52)
-    let leadingHeight = generator.next(in: 0.58...0.76)
-    let trailingWidth = generator.next(in: 0.34...0.46)
-    let trailingHeight = generator.next(in: 0.46...0.64)
-
-    return GeneratedCloudForm(
-      silhouette: .cumulus,
-      aspectRatio: aspectRatio,
-      ellipses: [
-        CloudEllipse(
-          x: generator.next(in: 0.01...0.06),
-          y: baseY,
-          width: generator.next(in: 0.88...0.96),
-          height: baseHeight
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.20...0.31),
-          y: generator.next(in: 0.12...0.22),
-          width: leadingWidth,
-          height: leadingHeight
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.50...0.60),
-          y: generator.next(in: 0.24...0.34),
-          width: trailingWidth,
-          height: trailingHeight
-        ),
-      ]
-    )
-  }
-
-  private static func flatShelf(
-    using generator: inout SeededValueGenerator
-  ) -> GeneratedCloudForm {
-    GeneratedCloudForm(
-      silhouette: .flatShelf,
-      aspectRatio: generator.next(in: 0.19...0.23),
-      ellipses: [
-        CloudEllipse(
-          x: generator.next(in: 0.02...0.08),
-          y: generator.next(in: 0.42...0.52),
-          width: generator.next(in: 0.84...0.94),
-          height: generator.next(in: 0.38...0.52)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.19...0.31),
-          y: generator.next(in: 0.31...0.42),
-          width: generator.next(in: 0.44...0.58),
-          height: generator.next(in: 0.36...0.50)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.50...0.62),
-          y: generator.next(in: 0.35...0.46),
-          width: generator.next(in: 0.32...0.46),
-          height: generator.next(in: 0.32...0.44)
-        ),
-      ]
-    )
-  }
-
-  private static func band(
-    using generator: inout SeededValueGenerator
-  ) -> GeneratedCloudForm {
-    GeneratedCloudForm(
-      silhouette: .band,
-      aspectRatio: generator.next(in: 0.18...0.22),
-      ellipses: [
-        CloudEllipse(
-          x: generator.next(in: 0.02...0.07),
-          y: generator.next(in: 0.41...0.52),
-          width: generator.next(in: 0.74...0.88),
-          height: generator.next(in: 0.36...0.48)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.23...0.35),
-          y: generator.next(in: 0.34...0.46),
-          width: generator.next(in: 0.48...0.62),
-          height: generator.next(in: 0.34...0.46)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.56...0.66),
-          y: generator.next(in: 0.39...0.50),
-          width: generator.next(in: 0.28...0.40),
-          height: generator.next(in: 0.30...0.40)
-        ),
-      ]
-    )
-  }
-
-  private static func veil(
-    using generator: inout SeededValueGenerator
-  ) -> GeneratedCloudForm {
-    GeneratedCloudForm(
-      silhouette: .veil,
-      aspectRatio: generator.next(in: 0.19...0.23),
-      ellipses: [
-        CloudEllipse(
-          x: generator.next(in: 0.03...0.09),
-          y: generator.next(in: 0.40...0.52),
-          width: generator.next(in: 0.52...0.66),
-          height: generator.next(in: 0.36...0.48)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.31...0.42),
-          y: generator.next(in: 0.32...0.44),
-          width: generator.next(in: 0.44...0.56),
-          height: generator.next(in: 0.34...0.46)
-        ),
-        CloudEllipse(
-          x: generator.next(in: 0.58...0.68),
-          y: generator.next(in: 0.43...0.54),
-          width: generator.next(in: 0.26...0.38),
-          height: generator.next(in: 0.28...0.38)
-        ),
-      ]
-    )
-  }
-}
-
-private enum CloudSilhouette: Equatable {
-  case cumulus
-  case flatShelf
-  case band
-  case veil
-
-  struct Metrics {
-    let widthScale: CGFloat
-    let aspectRatioScale: CGFloat
-    let minimumAspectRatio: CGFloat
-    let opacityScale: Double
-    let blurScale: CGFloat
-  }
-
-  func verticalBias(for horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
-    let isRegular = horizontalSizeClass == .regular
-
-    switch self {
-    case .cumulus:
-      return isRegular ? -0.13 : -0.10
-    case .flatShelf:
-      return isRegular ? 0.01 : 0.01
-    case .band:
-      return isRegular ? 0.03 : 0.02
-    case .veil:
-      return isRegular ? 0.04 : 0.03
-    }
-  }
-
-  var motionTravelScale: CGFloat {
-    switch self {
-    case .cumulus:
-      return 0.82
-    case .flatShelf:
-      return 1.00
-    case .band:
-      return 1.14
-    case .veil:
-      return 1.26
-    }
-  }
-
-  func motionDuration(
-    for horizontalSizeClass: UserInterfaceSizeClass?,
-    offsetIndex: Int
-  ) -> Double {
-    let isRegular = horizontalSizeClass == .regular
-    let baseDuration: Double
-
-    switch self {
-    case .cumulus:
-      baseDuration = isRegular ? 31 : 28
-    case .flatShelf:
-      baseDuration = isRegular ? 25 : 23
-    case .band:
-      baseDuration = isRegular ? 21 : 19
-    case .veil:
-      baseDuration = isRegular ? 18 : 16
-    }
-
-    return baseDuration + Double(offsetIndex % 3) * 1.8
-  }
-
-  func metrics(for horizontalSizeClass: UserInterfaceSizeClass?) -> Metrics {
-    if horizontalSizeClass == .regular {
-      return regularMetrics
-    }
-
-    return compactMetrics
-  }
-
-  private var compactMetrics: Metrics {
-    switch self {
-    case .cumulus:
-      Metrics(
-        widthScale: 1.00,
-        aspectRatioScale: 0.92,
-        minimumAspectRatio: 0.19,
-        opacityScale: 0.92,
-        blurScale: 1.08
-      )
-    case .flatShelf:
-      Metrics(
-        widthScale: 1.15,
-        aspectRatioScale: 1.00,
-        minimumAspectRatio: 0.20,
-        opacityScale: 1.15,
-        blurScale: 0.96
-      )
-    case .band:
-      Metrics(
-        widthScale: 1.25,
-        aspectRatioScale: 1.00,
-        minimumAspectRatio: 0.19,
-        opacityScale: 1.20,
-        blurScale: 0.94
-      )
-    case .veil:
-      Metrics(
-        widthScale: 1.10,
-        aspectRatioScale: 1.00,
-        minimumAspectRatio: 0.20,
-        opacityScale: 1.12,
-        blurScale: 0.98
-      )
-    }
-  }
-
-  private var regularMetrics: Metrics {
-    switch self {
-    case .cumulus:
-      Metrics(
-        widthScale: 1.68,
-        aspectRatioScale: 0.68,
-        minimumAspectRatio: 0.16,
-        opacityScale: 0.82,
-        blurScale: 1.14
-      )
-    case .flatShelf:
-      Metrics(
-        widthScale: 1.70,
-        aspectRatioScale: 0.86,
-        minimumAspectRatio: 0.17,
-        opacityScale: 1.00,
-        blurScale: 1.02
-      )
-    case .band:
-      Metrics(
-        widthScale: 1.85,
-        aspectRatioScale: 0.82,
-        minimumAspectRatio: 0.16,
-        opacityScale: 1.04,
-        blurScale: 0.98
-      )
-    case .veil:
-      Metrics(
-        widthScale: 1.58,
-        aspectRatioScale: 0.86,
-        minimumAspectRatio: 0.17,
-        opacityScale: 0.98,
-        blurScale: 1.04
-      )
-    }
-  }
-
-  static func generated(from seed: UInt64) -> CloudSilhouette {
-    switch seed % 5 {
-    case 0:
-      return .cumulus
-    case 1:
-      return .flatShelf
-    case 2:
-      return .band
-    case 3:
-      return .veil
-    default:
-      return .flatShelf
-    }
-  }
-}
-
-private struct CloudEllipse {
-  let x: CGFloat
-  let y: CGFloat
-  let width: CGFloat
-  let height: CGFloat
-
-  func rect(in rect: CGRect) -> CGRect {
-    CGRect(
-      x: rect.minX + (rect.width * x),
-      y: rect.minY + (rect.height * y),
-      width: rect.width * width,
-      height: rect.height * height
-    )
-  }
-}
-
 private struct SeededValueGenerator {
   private var state: UInt64
 
@@ -1153,26 +471,4 @@ private struct ShootingStar {
   let cycleDuration: Double
   let activeDuration: Double
   let phaseOffset: Double
-}
-
-private struct Cloud {
-  let x: CGFloat
-  let y: CGFloat
-  let width: CGFloat
-  let opacity: Double
-  let silhouette: CloudSilhouette?
-
-  init(
-    x: CGFloat,
-    y: CGFloat,
-    width: CGFloat,
-    opacity: Double,
-    silhouette: CloudSilhouette? = nil
-  ) {
-    self.x = x
-    self.y = y
-    self.width = width
-    self.opacity = opacity
-    self.silhouette = silhouette
-  }
 }

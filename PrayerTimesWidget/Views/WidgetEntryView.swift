@@ -119,5 +119,11 @@ struct LockScreenPrayerView: View {
       .lineLimit(1)
       .minimumScaleFactor(0.6)
       .fontDesign(.rounded)
+      // Avoid capturing an intermediate digit transition when entering Always-On.
+      .contentTransition(.identity)
+      .transaction { transaction in
+        transaction.animation = nil
+        transaction.disablesAnimations = true
+      }
   }
 }

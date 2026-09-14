@@ -189,6 +189,34 @@ private struct PrayerCardBackground: View {
     )
     .fill(backgroundGradient)
     .overlay {
+      if usesDaytimeSky {
+        Group {
+          if prayer == .sunrise {
+            SunriseSky()
+          } else {
+            AsrSky()
+          }
+        }
+          .clipShape(
+            RoundedRectangle(
+              cornerRadius: prayerCardCornerRadius,
+              style: .continuous
+            )
+          )
+      }
+    }
+    .overlay {
+      if usesTwilightSky {
+        TwilightSky(prayer: prayer)
+          .clipShape(
+            RoundedRectangle(
+              cornerRadius: prayerCardCornerRadius,
+              style: .continuous
+            )
+          )
+      }
+    }
+    .overlay {
       PrayerAtmosphericDetails(prayer: prayer)
         .clipShape(
           RoundedRectangle(
@@ -198,21 +226,23 @@ private struct PrayerCardBackground: View {
         )
     }
     .overlay {
-      RoundedRectangle(
-        cornerRadius: prayerCardCornerRadius,
-        style: .continuous
-      )
-      .fill(
-        LinearGradient(
-          colors: [
-            .black.opacity(0.08),
-            .clear,
-            .white.opacity(0.10),
-          ],
-          startPoint: .top,
-          endPoint: .bottom
+      if !usesDaytimeSky {
+        RoundedRectangle(
+          cornerRadius: prayerCardCornerRadius,
+          style: .continuous
         )
-      )
+        .fill(
+          LinearGradient(
+            colors: [
+              .black.opacity(0.08),
+              .clear,
+              .white.opacity(0.10),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
+      }
     }
     .shadow(
       color: gradientShadowColor.opacity(0.18),
@@ -229,13 +259,22 @@ private struct PrayerCardBackground: View {
     )
   }
 
+  private var usesDaytimeSky: Bool {
+    prayer == .sunrise || prayer == .asr
+  }
+
+  private var usesTwilightSky: Bool {
+    prayer == .fajr || prayer == .maghrib
+  }
+
   private var gradientStops: [Gradient.Stop] {
     switch prayer {
     case .fajr:
       [
-        .init(color: Color(red: 0.07, green: 0.12, blue: 0.32), location: 0),
-        .init(color: Color(red: 0.20, green: 0.24, blue: 0.48), location: 0.50),
-        .init(color: Color(red: 0.47, green: 0.36, blue: 0.52), location: 1),
+        .init(color: Color(red: 0.06, green: 0.09, blue: 0.24), location: 0),
+        .init(color: Color(red: 0.15, green: 0.19, blue: 0.38), location: 0.46),
+        .init(color: Color(red: 0.28, green: 0.28, blue: 0.47), location: 0.78),
+        .init(color: Color(red: 0.43, green: 0.38, blue: 0.50), location: 1),
       ]
     case .sunrise:
       [
@@ -260,9 +299,11 @@ private struct PrayerCardBackground: View {
       ]
     case .maghrib:
       [
-        .init(color: Color(red: 0.08, green: 0.10, blue: 0.28), location: 0),
-        .init(color: Color(red: 0.25, green: 0.20, blue: 0.43), location: 0.50),
-        .init(color: Color(red: 0.51, green: 0.31, blue: 0.45), location: 1),
+        .init(color: Color(red: 0.07, green: 0.08, blue: 0.22), location: 0),
+        .init(color: Color(red: 0.19, green: 0.15, blue: 0.34), location: 0.46),
+        .init(color: Color(red: 0.34, green: 0.23, blue: 0.38), location: 0.72),
+        .init(color: Color(red: 0.50, green: 0.30, blue: 0.39), location: 0.88),
+        .init(color: Color(red: 0.55, green: 0.37, blue: 0.40), location: 1),
       ]
     case .isha:
       [
@@ -276,6 +317,57 @@ private struct PrayerCardBackground: View {
 
   private var gradientShadowColor: Color {
     gradientStops.first?.color ?? .black
+  }
+}
+
+private struct TwilightSky: View {
+  let prayer: Prayer
+
+  var body: some View {
+    GeometryReader { proxy in
+      let isDawn = prayer == .fajr
+      let horizonCenter = UnitPoint(
+        x: isDawn ? 0.30 : 0.72,
+        y: 1.04
+      )
+
+      ZStack {
+        RadialGradient(
+          colors: isDawn
+            ? [
+                Color(red: 0.48, green: 0.58, blue: 0.88).opacity(0.16),
+                Color(red: 0.33, green: 0.40, blue: 0.68).opacity(0.06),
+                .clear,
+              ]
+            : [
+                Color(red: 0.98, green: 0.60, blue: 0.40).opacity(0.14),
+                Color(red: 0.74, green: 0.38, blue: 0.42).opacity(0.06),
+                .clear,
+              ],
+          center: horizonCenter,
+          startRadius: 0,
+          endRadius: max(proxy.size.width, proxy.size.height) * 0.92
+        )
+        .blur(radius: 5)
+
+        LinearGradient(
+          colors: isDawn
+            ? [
+                .clear,
+                Color(red: 0.48, green: 0.54, blue: 0.78).opacity(0.035),
+              ]
+            : [
+                .clear,
+                Color(red: 0.92, green: 0.50, blue: 0.39).opacity(0.045),
+              ],
+          startPoint: .top,
+          endPoint: .bottom
+        )
+      }
+      .blendMode(.plusLighter)
+    }
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
   }
 }
 

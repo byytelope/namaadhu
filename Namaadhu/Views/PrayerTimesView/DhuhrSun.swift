@@ -2,6 +2,8 @@ import CoreMotion
 import SwiftUI
 
 struct DhuhrSun: View {
+  var clouds: [DhuhrCloudSprite] = []
+
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @State private var breathes = false
@@ -10,7 +12,7 @@ struct DhuhrSun: View {
   @State private var gyroscopeBaselinePitch: Double?
   @State private var motionManager = CMMotionManager()
 
-  private let rayAngles = [0.0, 45.0, 90.0, 135.0]
+  private let rayAngles = [12.0, 58.0, 104.0, 166.0]
 
   var body: some View {
     GeometryReader { proxy in
@@ -22,139 +24,175 @@ struct DhuhrSun: View {
       let rayRotation = reduceMotion ? 0 : (breathes ? 1.8 : -1.1)
 
       ZStack {
-        Circle()
-          .fill(
-            RadialGradient(
-              colors: [
-                Color(
-                  .sRGBLinear,
-                  red: 1.35,
-                  green: 1.55,
-                  blue: 1.75,
-                  opacity: 0.38
-                ),
-                Color(
-                  .sRGBLinear,
-                  red: 0.78,
-                  green: 0.92,
-                  blue: 1.00,
-                  opacity: 0.20
-                ),
-                .clear,
-              ],
-              center: .center,
-              startRadius: 0,
-              endRadius: 72
-            )
-          )
-          .frame(width: 144, height: 144)
-          .blur(radius: 5)
-          .scaleEffect(motionEnabled ? 1.03 : 0.98)
-          .opacity(motionEnabled ? 1 : 0.86)
-          .position(sunPosition)
-
-        ForEach(rayAngles, id: \.self) { angle in
-          Capsule()
+        ZStack {
+          Circle()
             .fill(
-              LinearGradient(
+              RadialGradient(
                 colors: [
-                  .clear,
                   Color(
                     .sRGBLinear,
-                    white: 1.35,
+                    red: 1.02,
+                    green: 1.08,
+                    blue: 1.12,
+                    opacity: 0.24
+                  ),
+                  Color(
+                    .sRGBLinear,
+                    red: 0.82,
+                    green: 0.94,
+                    blue: 1.00,
+                    opacity: 0.11
+                  ),
+                  Color(
+                    .sRGBLinear,
+                    white: 0.92,
+                    opacity: 0.025
+                  ),
+                  .clear,
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 96
+              )
+            )
+            .frame(width: 192, height: 192)
+            .blur(radius: 11)
+            .scaleEffect(motionEnabled ? 1.03 : 0.98)
+            .opacity(motionEnabled ? 0.94 : 0.78)
+            .position(sunPosition)
+
+          Circle()
+            .fill(
+              RadialGradient(
+                colors: [
+                  Color(
+                    .sRGBLinear,
+                    red: 1.30,
+                    green: 1.22,
+                    blue: 0.98,
+                    opacity: 0.30
+                  ),
+                  Color(
+                    .sRGBLinear,
+                    red: 1.00,
+                    green: 1.02,
+                    blue: 0.92,
+                    opacity: 0.09
+                  ),
+                  .clear,
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 42
+              )
+            )
+            .frame(width: 84, height: 84)
+            .blur(radius: 3)
+            .scaleEffect(motionEnabled ? 1.04 : 0.98)
+            .position(sunPosition)
+
+          ForEach(rayAngles, id: \.self) { angle in
+            Capsule()
+              .fill(
+                LinearGradient(
+                  colors: [
+                    .clear,
+                    Color(
+                      .sRGBLinear,
+                      white: 1.35,
+                      opacity: 0.18
+                    ),
+                    .clear,
+                  ],
+                  startPoint: .leading,
+                  endPoint: .trailing
+                )
+              )
+              .frame(width: 98, height: 0.9)
+              .blur(radius: 1.6)
+              .opacity(motionEnabled ? 0.44 : 0.24)
+              .rotationEffect(.degrees(angle + rayRotation))
+              .position(sunPosition)
+          }
+
+          Circle()
+            .fill(
+              RadialGradient(
+                colors: [
+                  Color(.sRGBLinear, red: 4.0, green: 3.35, blue: 1.95),
+                  Color(.sRGBLinear, red: 2.25, green: 1.82, blue: 0.78),
+                  Color(
+                    .sRGBLinear,
+                    white: 1.20,
                     opacity: 0.18
                   ),
                   .clear,
                 ],
-                startPoint: .leading,
-                endPoint: .trailing
+                center: .center,
+                startRadius: 0,
+                endRadius: 16
               )
             )
-            .frame(
-              width: 112,
-              height: angle == 0 || angle == 90 ? 1.4 : 0.8
-            )
-            .blur(radius: 0.7)
-            .opacity(motionEnabled ? 1 : 0.68)
-            .rotationEffect(.degrees(angle + rayRotation))
+            .frame(width: 31, height: 31)
+            .shadow(color: .white.opacity(0.9), radius: 7)
+            .scaleEffect(motionEnabled ? 1.02 : 0.99)
+            .opacity(motionEnabled ? 1 : 0.96)
             .position(sunPosition)
         }
+        .frame(width: proxy.size.width, height: proxy.size.height)
+        .modifier(DhuhrCloudOcclusion(clouds: clouds, sun: sunPosition))
 
-        Circle()
-          .fill(
-            RadialGradient(
-              colors: [
-                Color(
-                  .sRGBLinear,
-                  red: 3.20,
-                  green: 2.70,
-                  blue: 1.55
-                ),
-                Color(
-                  .sRGBLinear,
-                  red: 2.10,
-                  green: 1.70,
-                  blue: 0.72
-                ),
-                Color(
-                  .sRGBLinear,
-                  white: 1.30,
-                  opacity: 0.22
-                ),
-                .clear,
-              ],
-              center: .center,
-              startRadius: 0,
-              endRadius: 19
-            )
+        ZStack {
+          flareArtifact(
+            diameter: 20,
+            widthScale: 1.65,
+            blurRadius: 1.8,
+            opacity: 0.11,
+            color: Color(red: 0.68, green: 0.90, blue: 1.00),
+            x: 0.50,
+            y: 0.52,
+            in: proxy.size
           )
-          .frame(width: 38, height: 38)
-          .shadow(color: .white.opacity(0.9), radius: 8)
-          .scaleEffect(motionEnabled ? 1.015 : 0.99)
-          .opacity(motionEnabled ? 1 : 0.94)
-          .position(sunPosition)
+          .opacity(motionEnabled ? 1 : 0.72)
+          .offset(
+            x: (motionEnabled ? -1.2 : 0.5) + gyroFlareOffset.width,
+            y: (motionEnabled ? 0.8 : -0.4) + gyroFlareOffset.height
+          )
 
-        flareArtifact(
-          diameter: 17,
-          opacity: 0.13,
-          color: Color(red: 0.68, green: 0.90, blue: 1.00),
-          x: 0.50,
-          y: 0.52,
-          in: proxy.size
-        )
-        .opacity(motionEnabled ? 1 : 0.72)
-        .offset(
-          x: (motionEnabled ? -1.2 : 0.5) + gyroFlareOffset.width,
-          y: (motionEnabled ? 0.8 : -0.4) + gyroFlareOffset.height
-        )
+          flareArtifact(
+            diameter: 12,
+            widthScale: 1.20,
+            blurRadius: 1.05,
+            opacity: 0.14,
+            color: Color(red: 0.84, green: 0.74, blue: 1.00),
+            x: 0.37,
+            y: 0.68,
+            in: proxy.size
+          )
+          .opacity(motionEnabled ? 1 : 0.68)
+          .offset(
+            x: (motionEnabled ? -0.8 : 0.4) + (gyroFlareOffset.width * 0.65),
+            y: (motionEnabled ? 0.5 : -0.3) + (gyroFlareOffset.height * 0.65)
+          )
 
-        flareArtifact(
-          diameter: 9,
-          opacity: 0.16,
-          color: Color(red: 0.84, green: 0.74, blue: 1.00),
-          x: 0.37,
-          y: 0.68,
-          in: proxy.size
-        )
-        .opacity(motionEnabled ? 1 : 0.68)
-        .offset(
-          x: (motionEnabled ? -0.8 : 0.4) + (gyroFlareOffset.width * 0.65),
-          y: (motionEnabled ? 0.5 : -0.3) + (gyroFlareOffset.height * 0.65)
-        )
-
-        flareArtifact(
-          diameter: 5,
-          opacity: 0.22,
-          color: .white,
-          x: 0.29,
-          y: 0.78,
-          in: proxy.size
-        )
-        .opacity(motionEnabled ? 1 : 0.74)
-        .offset(
-          x: (motionEnabled ? -0.5 : 0.3) + (gyroFlareOffset.width * 0.35),
-          y: (motionEnabled ? 0.3 : -0.2) + (gyroFlareOffset.height * 0.35)
-        )
+          flareArtifact(
+            diameter: 7,
+            widthScale: 0.88,
+            blurRadius: 0.55,
+            opacity: 0.18,
+            color: .white,
+            x: 0.29,
+            y: 0.78,
+            in: proxy.size
+          )
+          .opacity(motionEnabled ? 1 : 0.74)
+          .offset(
+            x: (motionEnabled ? -0.5 : 0.3) + (gyroFlareOffset.width * 0.35),
+            y: (motionEnabled ? 0.3 : -0.2) + (gyroFlareOffset.height * 0.35)
+          )
+        }
+        .frame(width: proxy.size.width, height: proxy.size.height)
+        .modifier(DhuhrCloudOcclusion(clouds: clouds, sun: sunPosition, isFlare: true))
       }
       .blendMode(.plusLighter)
     }
@@ -204,7 +242,11 @@ struct DhuhrSun: View {
     }
 
     motionManager.deviceMotionUpdateInterval = 1.0 / 20.0
-    motionManager.startDeviceMotionUpdates(to: .main) { motion, _ in
+    motionManager.startDeviceMotionUpdates(
+      using: .xArbitraryCorrectedZVertical,
+      to: .main
+    ) { motion, _ in
+      guard scenePhase == .active else { return }
       guard let motion else { return }
       guard
         let gyroscopeBaselineRoll,
@@ -218,8 +260,8 @@ struct DhuhrSun: View {
       let relativeRoll = motion.attitude.roll - gyroscopeBaselineRoll
       let relativePitch = motion.attitude.pitch - gyroscopeBaselinePitch
       let targetOffset = CGSize(
-        width: CGFloat(min(max(relativeRoll * 18, -10), 10)),
-        height: CGFloat(min(max(relativePitch * 14, -7), 7))
+        width: CGFloat(min(max(relativeRoll * 28, -14), 14)),
+        height: CGFloat(min(max(relativePitch * 20, -10), 10))
       )
       let smoothedOffset = CGSize(
         width: gyroFlareOffset.width + ((targetOffset.width - gyroFlareOffset.width) * 0.2),
@@ -253,13 +295,15 @@ struct DhuhrSun: View {
 
   private func flareArtifact(
     diameter: CGFloat,
+    widthScale: CGFloat,
+    blurRadius: CGFloat,
     opacity: Double,
     color: Color,
     x: CGFloat,
     y: CGFloat,
     in size: CGSize
   ) -> some View {
-    Circle()
+    Ellipse()
       .fill(
         RadialGradient(
           colors: [
@@ -272,11 +316,8 @@ struct DhuhrSun: View {
           endRadius: diameter / 2
         )
       )
-      .overlay {
-        Circle()
-          .stroke(color.opacity(opacity * 0.55), lineWidth: 0.7)
-      }
-      .frame(width: diameter, height: diameter)
+      .frame(width: diameter * widthScale, height: diameter)
+      .blur(radius: blurRadius)
       .position(x: size.width * x, y: size.height * y)
   }
 }
